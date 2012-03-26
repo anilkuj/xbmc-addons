@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="plugin.video.movie2k" version="0.1.0" name="Movie2k" provider-name="anilkuj">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+        <import addon="script.module.urlresolver" version="0.0.1"/>
+        <import addon="script.module.t0mm0.common" version="0.0.1"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Browse movie2k</summary>
+        <description>Play a wide selection of movies and TV shows from movie2k</description>
+        <platform>all</platform>
+    </extension>
+</addon>

@@ -1,0 +1,8 @@
+<settings>
+   <category label="Accounts">
+         <setting id="realdebrid-account" type="bool" label="30220" default="false"/>
+         <setting id="realdebrid-username" type="text" label="30221" default="" enable="!eq(-1,false)"/>
+         <setting id="realdebrid-password" type="text" label="30222" default="" option="hidden" enable="!eq(-2,false)"/> 
+         <setting id="hide-successful-login-messages" type="bool" label="30250" default="true" />
+   </category>
+</settings>

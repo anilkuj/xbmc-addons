@@ -1,0 +1,10 @@
+[B]Version 0.1.3[/B]
+-  Fixed video sources issue [B]Version 0.1.2[/B]
+- Faster menu loading
+- Fixed solar movie get video link
+
+[B]Version 0.1.1[/B]
+- Faster menu loading
+
+[B]Version 0.1.0[/B]
+- Initial version of solarmovie.eu plugin

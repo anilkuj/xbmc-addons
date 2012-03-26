@@ -1,0 +1,11 @@
+
+
+
+[B]Version 0.1.1[/B]
+
+- Tv-links site integration with favorites and hoster preferences
+
+- Pagination for links , now loading all available links from tv-links
+[B]Version 0.1.0[/B]
+
+- Initial version of tvlinks.eu plugin
