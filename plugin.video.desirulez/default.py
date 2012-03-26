@@ -4,6 +4,7 @@ import re, string, sys, os
 import urlresolver
 from t0mm0.common.addon import Addon
 from t0mm0.common.net import Net
+import HTMLParser
 
 try:
 	from sqlite3 import dbapi2 as sqlite
@@ -66,7 +67,11 @@ def GetTitles(url, startPage= '1', numOfPages= '1'): # Get Movie Titles
         if start == 1:
                 match = re.compile('Sticky:.+?href="(.+?)".+?>(.+?)<', re.DOTALL).findall(html)
                 for movieUrl, name in match:
-                        addon.add_directory({'mode': 'GetLinks', 'url': movieUrl}, {'title':  name})   
+                        cm  = []
+                        title = name.partition(' ')
+                        runstring = 'XBMC.Container.Update(plugin://plugin.video.desirulez/?mode=Search&query=%s)' %(title[0])
+        		cm.append(('Search on Desirulez', runstring))
+                        addon.add_directory({'mode': 'GetLinks', 'url': movieUrl}, {'title':  name}, contextmenu_items= cm)   
 
         print str(start) + ' : ' + str(end) + ' : ' + str(last)
         for page in range( start, min(last, end)):
@@ -76,7 +81,11 @@ def GetTitles(url, startPage= '1', numOfPages= '1'): # Get Movie Titles
                         
                 match = re.compile('nonsticky.+?<a class=".+?" href="(.+?)".+?>(.+?)<', re.DOTALL).findall(html)
                 for movieUrl, name in match:
-                        addon.add_directory({'mode': 'GetLinks', 'url': movieUrl}, {'title':  name})
+                        cm  = []
+                        title = name.partition(' ')
+                        runstring = 'XBMC.Container.Update(plugin://plugin.video.desirulez/?mode=Search&query=%s)' %(title[0])
+        		cm.append(('Search on Desirulez', runstring))
+                        addon.add_directory({'mode': 'GetLinks', 'url': movieUrl}, {'title':  name}, contextmenu_items= cm) 
 
         # keep iterating until the laast page is reached
         if end < last:
