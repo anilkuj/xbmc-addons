@@ -60,9 +60,6 @@ def GetTitles(section, url, startPage= '1', numOfPages= '1'): # Get Movie Titles
 
 def ListTitles(section, html):
         print ' in ListTitles'
-        #match = re.compile('entry clearfix.+?href="(.+?)">(.+?)<.+?href="(.+?)"(.+?)<div.+?<p.*?>(.+?)<.+?/title/(.+?)/.+?Download.+?</div>(.+?)</div>', re.DOTALL).findall(html)
-        #for url, title, img, info, plot, imdbid, content in match:
-
         if 'movies' in section:
                 match = re.compile('entry-title"><a href="(.+?)".+?center"><img src="(.+?)" title="(.+?)".+?href="(.+?)"', re.DOTALL).findall(html)
                 for url, img, title, imdbUrl in match:
@@ -107,14 +104,6 @@ def PlayVideo(url, listitem):
         else:
                 dialog.ok(' OneDDL ', ' Could not find video. ', '', '')
 
-def GetDomain(url):
-        tmp = re.compile('//(.+?)/').findall(url)
-        domain = 'Unknown'
-        if len(tmp) > 0 :
-            domain = tmp[0].replace('www.', '')
-        return domain
-
-
 def GetMediaInfo(html):
         listitem = xbmcgui.ListItem()
         match = re.search('og:title" content="(.+?) \((.+?)\)', html)
@@ -143,23 +132,10 @@ def Categories(section):  #categories
 def MainMenu():    #homescreen
         addon.add_directory({'mode': 'Categories', 'section': 'movies'},  {'title':  'Movies'})
         addon.add_directory({'mode': 'Categories', 'section': 'tv-shows'},  {'title':  'TV Shows'})
-        addon.add_directory({'mode': 'GetTitles', 'section': 'ALL', 'url': BASE_URL + '/category/staff-picks/', 'startPage': '1', 'numOfPages': '2'}, {'title':  'Staff Picks'})
+        #addon.add_directory({'mode': 'GetTitles', 'section': 'ALL', 'url': BASE_URL + '/category/staff-picks/', 'startPage': '1', 'numOfPages': '2'}, {'title':  'Staff Picks'})
         addon.add_directory({'mode': 'ResolverSettings'}, {'title':  'Resolver Settings'})
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-
-def ListMovies(section, url):
-        match = re.compile('href="(.+?)">(.+?)<').findall(content)
-        for url, title in match:
-                addon.add_directory({'mode': 'GetTitles', 'section': section, 'url': url, 'startPage': '1', 'numOfPages': '2'}, {'title':  title.encode('utf-8')})
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
-
-def BrowseGenre(content):
-        match = re.compile('href="(.+?)">(.+?)<').findall(content)
-        for url, title in match:
-                addon.add_directory({'mode': 'GetLinks', 'url': url, 'startPage': '1', 'numOfPages': '3'}, {'title':  title.encode('utf-8')})
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def GetSearchQuery(section):
 	last_search = addon.load_data('search')
