@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.desirulez" version="0.1.1" name="Desirulez" provider-name="anilkuj">
+<addon id="plugin.video.desirulez" version="0.1.2" name="Desirulez" provider-name="anilkuj">
     <requires>
         <import addon="xbmc.python" version="1.0"/>
         <import addon="script.module.t0mm0.common" version="0.0.1"/>
