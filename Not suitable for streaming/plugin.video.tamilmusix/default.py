@@ -61,29 +61,57 @@ def GetTitles(section, url, startPage= '1', numOfPages= '1'): # Get Movie Titles
 def ListTitles(section, html):
         print ' in ListTitles'
         match = re.compile('postcontent">.+?href="(.+?)".+?src="(.+?)".+?alt=\'(.+?)\'', re.DOTALL).findall(html)
-        for url, img, title, content in match:
+        for url, img, title in match:
                 addon.add_directory({'mode': 'GetLinks', 'url': url}, {'title':  title}, img= img)
 
 
 def GetLinks(url): # Get TV Links
-        print 'In GetLinks'
+        print 'In GetLinks %s' % url
         html = net.http_GET(url).content
-        match = re.compile('et-box-content(.+?)</div>').findall(html)
+        match = re.compile('et-box-content(.+?)</div>', re.DOTALL).findall(html)
         listitem = GetMediaInfo(html)
         for content in match:
-                links = re.compile('href="(.+?)".+?>(.+?)<').findall(content)
+                print 'in first loop'
+                links = re.compile('href="(.+?)".+?>(.+?)<', re.DOTALL).findall(content)
                 for url, name in links:
+                        print 'in second loop'
                         if 'adf.ly' in url:
                                 url = GetAdflyUrl(url)
+                        if not url:
+                                print 'could not resolve ad.fly url'
+                                continue
+                        print url
+
+                        # ignore .rar files
+                        r = re.search('\.rar[(?:\.html|\.htm)]*', url, re.IGNORECASE)
+                        if r:
+                                print 'ignored desirulez url %s' % url
+                                continue
+
+                        # ignore .rar files
+                        r = re.search('\.rar[(?:\.html|\.htm)]*', name, re.IGNORECASE)
+                        if r:
+                                print 'ignored desirulez url %s' % name
+                                continue
+                        
+
+                        
                         host = GetDomain(url)
-                        print '*****************************' + host +  ':' + name + ' : ' + url
+                        #print '*****************************' + host +  ':' + name + ' : ' + url
                         if urlresolver.HostedMediaFile(url= url):
                                 addon.add_directory({'mode': 'PlayVideo', 'url': url, 'listitem': listitem}, {'title':  host + ' : ' + name})
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
 def GetAdflyUrl(url):
-        return net.http_GET(url).get_url()
+        print 'in GetAdflyUrl %s' % url
+        html = net.http_GET(url).content
+        match = re.search("var url = '(.+?)';", html)
+        if match:
+                url =  match.group(1)
+                return net.http_GET(url).get_url()
+        else:
+                return None
 
 def PlayVideo(url, listitem):
         print 'in PlayVideo %s' % url
@@ -113,7 +141,8 @@ def Categories(section):  #categories
         match = re.compile('<li id=.+?href="' + BASE_CAT_URL + '(.+?)">(.+?)<').findall(html)
         for cat, title in match:
                 url = BASE_CAT_URL + cat
-                addon.add_directory({'mode': 'GetTitles', 'section': section, 'url': url, 'startPage': '1', 'numOfPages': '2'}, {'title':  title})
+                if 'Movie' in title:
+                        addon.add_directory({'mode': 'GetTitles', 'section': section, 'url': url, 'startPage': '1', 'numOfPages': '2'}, {'title':  title})
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def MainMenu():    #homescreen
