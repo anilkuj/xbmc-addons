@@ -68,8 +68,12 @@ def GetTitles(url, startPage= '1', numOfPages= '1'): # Get Movie Titles
                 match = re.compile('Sticky:.+?href="(.+?)".+?>(.+?)<', re.DOTALL).findall(html)
                 for movieUrl, name in match:
                         cm  = []
-                        title = name.partition(' ')
-                        runstring = 'XBMC.Container.Update(plugin://plugin.video.desirulez/?mode=Search&query=%s)' %(title[0])
+                        r = re.search('([\w\s]+)', name)
+                        if r:
+                                title = r.group(1)
+                        else:
+                                title = name
+                        runstring = 'XBMC.Container.Update(plugin://plugin.video.desirulez/?mode=Search&query=%s)' %(title)
         		cm.append(('Search on Desirulez', runstring))
                         addon.add_directory({'mode': 'GetLinks', 'url': movieUrl}, {'title':  name}, contextmenu_items= cm)   
 
