@@ -1,4 +1,0 @@
-[B]Version 0.1.1[/B]
-- Added more links from the comments section 
-[B]Version 0.1.0[/B]
-- Initial version of oneddl.eu plugin
