@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addons>
+<addon id="plugin.video.desirulez" version="0.1.2" name="Desirulez" provider-name="anilkuj">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+        <import addon="script.module.t0mm0.common" version="0.0.1"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Browse desirulez</summary>
+        <description>Play a wide selection of movies from desirulez</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.desitvforum" version="0.1.0" name="desitvforum" provider-name="adidas">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+        <import addon="script.module.urlresolver" version="0.0.1"/>
+        <import addon="script.module.t0mm0.common" version="0.0.1"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Browse desitvforum</summary>
+        <description>Play a wide selection of movies and TV shows from desitvforum</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.extramina" version="0.1.1" name="Extramina" provider-name="anilkuj">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+        <import addon="script.module.t0mm0.common" version="0.0.1"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Browse extramina</summary>
+        <description>Play a wide selection of movies from extramina</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.irfree" version="0.1.0" name="IRFree" provider-name="anilkuj">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+        <import addon="script.module.t0mm0.common" version="0.0.1"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Browse irfree</summary>
+        <description>Play a wide selection of movies from irfree</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.sceper" version="0.1.1" name="Sceper" provider-name="anilkuj">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+        <import addon="script.module.t0mm0.common" version="0.0.1"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Browse sceper</summary>
+        <description>Play a wide selection of movies from sceper</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.solarmovie" version="0.1.3" name="solarmovie" provider-name="anilkuj">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+        <import addon="script.module.urlresolver" version="0.0.1"/>
+        <import addon="script.module.t0mm0.common" version="0.0.1"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Browse solarmovie</summary>
+        <description>Play a wide selection of movies and TV shows from solarmovie</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.tubeplus" version="0.1.1" name="Tubeplus" provider-name="anilkuj">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+        <import addon="script.module.urlresolver" version="0.0.1"/>
+        <import addon="script.module.t0mm0.common" version="0.0.1"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Browse tubeplus</summary>
+        <description>Play a wide selection of movies and TV shows from tubeplus</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
+<addon id="plugin.video.tvlinks" version="0.1.1" name="Tvlinks" provider-name="anilkuj">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+        <import addon="script.module.urlresolver" version="0.0.1"/>
+        <import addon="script.module.t0mm0.common" version="0.0.1"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Browse tvlinks</summary>
+        <description>Play a wide selection of movies and TV shows from tvlinks</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+</addons>
