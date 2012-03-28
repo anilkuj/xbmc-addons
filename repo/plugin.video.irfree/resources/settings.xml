@@ -1,5 +1,0 @@
-<settings>
-   <category label="General">
-	<setting id="autoPlay" type="bool" label="30200" default="true" visible="true"/>
-   </category>
-</settings>

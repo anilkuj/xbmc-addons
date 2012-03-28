@@ -1,6 +1,0 @@
-[B]Version 0.1.1[/B]
-- Added search function
-- Added subtitle support
-
-[B]Version 0.1.0[/B]
-- Initial version of tubeplus.me plugin

@@ -1,7 +1,0 @@
-<settings>
-   <category label="General">
-	<setting id="tvlinks-account" type="bool" label="30200" default="false" visible="true"/>
-	<setting id="tvlinks-username" type="text" label="30201" default="" enable="!eq(-1,false)" visible="true"/>
-	<setting id="tvlinks-password" type="text" label="30202" default="" option="hidden" enable="!eq(-2,false)" visible="true"/>
-   </category>
-</settings>

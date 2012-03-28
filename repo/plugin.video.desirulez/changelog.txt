@@ -1,7 +1,0 @@
-[B]Version 0.1.2[/B]
-- Added context menu search for movie titles
-[B]Version 0.1.1[/B]
-- Added more links when mirrori.com or multiup.org links are available
-- Show All Parts and Play ALl Parts are configurable u can turn either of them on or off
-[B]Version 0.1.0[/B]
-- Initial version of desirulez.net plugin
