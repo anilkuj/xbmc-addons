@@ -5,7 +5,7 @@ import urlresolver
 from t0mm0.common.addon import Addon
 from t0mm0.common.net import Net
 import HTMLParser
-
+from BeautifulSoup import BeautifulStoneSoup
 
 try:
 	from sqlite3 import dbapi2 as sqlite
@@ -150,19 +150,6 @@ def MainMenu():    #homescreen
         addon.add_directory({'mode': 'ResolverSettings'}, {'title':  'Resolver Settings'})
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-
-def ListMovies(section, url):
-        match = re.compile('href="(.+?)">(.+?)<').findall(content)
-        for url, title in match:
-                addon.add_directory({'mode': 'GetTitles', 'section': section, 'url': url, 'startPage': '1', 'numOfPages': '2'}, {'title':  title.encode('utf-8')})
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
-
-def BrowseGenre(content):
-        match = re.compile('href="(.+?)">(.+?)<').findall(content)
-        for url, title in match:
-                addon.add_directory({'mode': 'GetLinks', 'url': url, 'startPage': '1', 'numOfPages': '3'}, {'title':  title.encode('utf-8')})
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def GetSearchQuery(section):
 	last_search = addon.load_data('search')

@@ -1,0 +1,6 @@
+<settings>
+   <category label="General">
+	<setting id="showAllParts" type="bool" label="30200" default="true" visible="true"/>
+	<setting id="showPlayAll"  type="bool" label="30201" default="true" visible="true"/>
+   </category>
+</settings>
