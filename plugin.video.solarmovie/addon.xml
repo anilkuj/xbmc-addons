@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.solarmovie" version="0.1.0" name="solarmovie" provider-name="anilkuj">
+<addon id="plugin.video.solarmovie" version="0.1.3" name="solarmovie" provider-name="anilkuj">
     <requires>
         <import addon="xbmc.python" version="1.0"/>
         <import addon="script.module.urlresolver" version="0.0.1"/>

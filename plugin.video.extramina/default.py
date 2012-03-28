@@ -167,4 +167,6 @@ elif mode == 'Search':
 	Search(query)
 elif mode == 'PlayVideo':
 	PlayVideo(url, listitem)
+elif mode == 'ResolverSettings':
+        urlresolver.display_settings()
 
