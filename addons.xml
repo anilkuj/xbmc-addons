@@ -61,6 +61,22 @@
     </extension>
 </addon>
 
+<addon id="plugin.video.oneclickmoviez" version="0.1.0" name="OnceClickMoviez" provider-name="anilkuj">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+        <import addon="script.module.t0mm0.common" version="0.0.1"/>
+        <import addon="script.module.urlresolver" version="0.0.1"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Browse oneclickmoviez</summary>
+        <description>Play a wide selection of movies from oneclickmoviez</description>
+        <platform>all</platform>
+    </extension>
+</addon>
+
 <addon id="plugin.video.rlslog" version="0.1.0" name="Rlslog" provider-name="anilkuj">
     <requires>
         <import addon="xbmc.python" version="1.0"/>
@@ -138,18 +154,5 @@
         <description>Play a wide selection of movies and TV shows from tvlinks</description>
         <platform>all</platform>
     </extension>
-</addon>
-
-<addon id="repository.github.anilkuj-xbmc-addons" name="anilkuj addons" version="1.0.0" provider-name="anilkuj">
-	<extension point="xbmc.addon.repository" name="anilkuj add-on repository">
-		<info compressed="false">https://github.com/anilkuj/xbmc-addons/blob/master/addons.xml</info>
-		<checksum>https://github.com/anilkuj/xbmc-addons/blob/master/addons.xml.md5</checksum>
-		<datadir zip="true">https://github.com/anilkuj/xbmc-addons</datadir>
-	</extension>
-	<extension point="xbmc.addon.metadata">
-		<summary>Install Addons from https://github.com/anilkuj/</summary>
-		<description>Download and install addons from anilkuj repository.</description>
-		<platform>all</platform>
-	</extension>
 </addon>
 </addons>
