@@ -38,7 +38,7 @@ content = addon.queries.get('content', None)
 listitem = addon.queries.get('listitem', None)
 
 
-def GetTitles(section, url, startPage= '1', numOfPages= '1'): # Get Movie Titles
+def GetTitles(url, startPage= '1', numOfPages= '1'): # Get Movie Titles
         print 'irfree get Movie Titles Menu %s' % url
 
         # handle paging
@@ -58,13 +58,13 @@ def GetTitles(section, url, startPage= '1', numOfPages= '1'): # Get Movie Titles
                 if ( page != start):
                         pageUrl = url + 'page/' + str(page) + '/'
                         html = net.http_GET(pageUrl).content
-                ListTitles(section, html)
+                ListTitles(html)
        	if end < last:
-                addon.add_directory({'mode': 'GetTitles', 'section': section, 'url': url, 'startPage': str(end), 'numOfPages': numOfPages}, {'title':  'Next..'})
+                addon.add_directory({'mode': 'GetTitles', 'url': url, 'startPage': str(end), 'numOfPages': numOfPages}, {'title':  'Next..'})
        	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
-def ListTitles(section, html):
+def ListTitles(html):
         print ' in ListTitles'
         match = re.compile('newsTitle"><a href="(.+?)">(.+?)<', re.DOTALL).findall(html)
         for url, title in match:
@@ -116,23 +116,23 @@ def Categories(section):  #categories
         match = re.compile('<li.+?href="/' + section + '(.+?)".+?<b>(.+?)<').findall(html)
         for cat, title in match:
                 url = BASE_URL + '/' + section + cat
-                addon.add_directory({'mode': 'GetTitles', 'section': section, 'url': url,
+                addon.add_directory({'mode': 'GetTitles', 'url': url,
                                      'startPage': '1', 'numOfPages': '2'}, {'title':  title})
-        addon.add_directory({'mode': 'GetSearchQuery', 'section': section},  {'title':  'Search'})
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
         
 
 def MainMenu():    #homescreen
         addon.add_directory({'mode': 'Categories', 'section': 'movies'},  {'title':  'Movies'})
         addon.add_directory({'mode': 'Categories', 'section': 'tv-shows'},  {'title':  'TV Shows'})
+        addon.add_directory({'mode': 'GetSearchQuery'},  {'title':  'Search'})
         addon.add_directory({'mode': 'ResolverSettings'}, {'title':  'Resolver Settings'})
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
-def ListMovies(section, url):
+def ListMovies(url):
         match = re.compile('href="(.+?)">(.+?)<').findall(content)
         for url, title in match:
-                addon.add_directory({'mode': 'GetTitles', 'section': section, 'url': url, 'startPage': '1', 'numOfPages': '2'}, {'title':  title.encode('utf-8')})
+                addon.add_directory({'mode': 'GetTitles', 'url': url, 'startPage': '1', 'numOfPages': '2'}, {'title':  title.encode('utf-8')})
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def BrowseGenre(content):
@@ -142,7 +142,7 @@ def BrowseGenre(content):
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def GetSearchQuery(section):
+def GetSearchQuery():
 	last_search = addon.load_data('search')
 	if not last_search: last_search = ''
 	keyboard = xbmc.Keyboard()
@@ -152,27 +152,33 @@ def GetSearchQuery(section):
 	if (keyboard.isConfirmed()):
                 query = keyboard.getText()
                 addon.save_data('search',query)
-                Search(section, query)
+                Search( query)
 	else:
                 return
 
-def Search(section, query):
-        url = BASE_URL + '/?s='  + query
+def Search(query):
+        url = 'http://www.google.com/search?q=site:irfree.com ' + query
+        url = url.replace(' ', '+')
         print url
-        GetTitles(section, url, startPage= '1', numOfPages= '1')
+        html = net.http_GET(url).content
+        match = re.compile('<h3 class="r"><a href="(.+?)".+?onmousedown=".+?">(.+?)</a>').findall(html)
+        for url, title in match:
+                title = title.replace('<b>...</b>', '').replace('<em>', '').replace('</em>', '')
+                addon.add_directory({'mode': 'GetLinks', 'url': url}, {'title':  title})
+	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 if mode == 'main': 
 	MainMenu()
 elif mode == 'BrowseGenre':
 	BrowseGenre(content)
 elif mode == 'GetTitles': 
-	GetTitles(section, url, startPage, numOfPages)
+	GetTitles(url, startPage, numOfPages)
 elif mode == 'ListMovies': 
-	ListMovies(section, url)
+	ListMovies(url)
 elif mode == 'GetLinks':
 	GetLinks(url)
 elif mode == 'GetSearchQuery':
-	GetSearchQuery(section)
+	GetSearchQuery()
 elif mode == 'Search':
 	Search(query)
 elif mode == 'Categories':
