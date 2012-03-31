@@ -1,5 +1,6 @@
+[B]Version 0.1.2[/B]
 
-
+- Tv-links fixed favorites
 
 [B]Version 0.1.1[/B]
 

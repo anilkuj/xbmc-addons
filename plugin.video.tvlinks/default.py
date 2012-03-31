@@ -313,19 +313,27 @@ def Login():
                 return False
 
 def Favorites(section):
+        print 'in Favorites'
   	html = net.http_GET(BASE_URL + "/myaccount.html?zone=favorites" ).content
+  	print html
         numOfFav = re.search( 'class="a_right"><b>(.+?)</', html).group(1)
+        print numOfFav
         totalPages = int(numOfFav) / 12
         totalPages += 1
         if "No favorites yet" in html:
 		dialog.ok("Tvlinks", "There are no favorites for this user.")
 	else:
+                print 'in else %d' % totalPages
                 for index in range(1, totalPages + 1):
                         if index > 1:
 				html = net.http_GET("http://www.tv-links.eu/myaccount.html?zone=favorites&ap=" + str(index)).content
-			match = re.compile( '<li class="thumb_mov.+?href="(.+?)".+?src="(.+?)".+?alt="(.+?)"').findall(html)
+			match = re.compile( 'img"><a href="(.+?)".+?src="(.+?)".+?alt="(.+?)"').findall(html)
+			#print html
+			print len(match)
                         for url, img, title in match:
+                                print 'in for loop %s' %url
                                 if '/tv-shows/' in url:
+                                        print 'Found tv-show'
                                         addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url}, {'title':  title})
                 xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
