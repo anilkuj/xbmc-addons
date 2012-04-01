@@ -46,7 +46,7 @@ def GetTitles(url, startPage= '1', numOfPages= '1'): # Get Movie Titles
         # handle paging
         pageUrl = url
         if int(startPage)> 1:
-                pageUrl = url + '-' + startPage + '.html'
+                pageUrl = url + '&page=' + startPage
         print pageUrl
         html = net.http_GET(pageUrl).content
 
@@ -81,6 +81,8 @@ def GetTitles(url, startPage= '1', numOfPages= '1'): # Get Movie Titles
 
 def GetLinks(url): # Get Links
         print '***************************************************** In GetLinks %s' % url
+        if 'http' not in url:
+                url = BASE_URL + url
         html = net.http_GET(url).content
         listitem = GetMediaInfo(html)
         

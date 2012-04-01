@@ -40,6 +40,8 @@ numOfPages = addon.queries.get('numOfPages', None)
 listitem = addon.queries.get('listitem', None)
 urlList = addon.queries.get('urlList', None)
 section = addon.queries.get('section', None)
+title = addon.queries.get('title', None)
+year = addon.queries.get('year', None)
 
 
 
@@ -50,7 +52,6 @@ def GetTitles(url, startPage= '1', numOfPages= '1'): # Get Movie Titles
         pageUrl = url
         if int(startPage)> 1:
                 pageUrl = url + 'page/' + startPage + '/'
-        print pageUrl
         html = net.http_GET(pageUrl).content
 
         start = int(startPage)
@@ -61,9 +62,15 @@ def GetTitles(url, startPage= '1', numOfPages= '1'): # Get Movie Titles
                         pageUrl = url + 'page/' + str(page) + '/'
                         html = net.http_GET(pageUrl).content
                         
-                match = re.compile('#content.+?href="(.+?)".+?>(.+?)<.+?src="(.+?)"', re.DOTALL).findall(html)
-                for movieUrl, name, img in match:
-                        addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': movieUrl}, {'title':  name.strip()}, img= img)
+                match = re.compile('#content.+?href="(.+?)".+?>(.+?)<.+?src="(.+?)".+?/IMDB/(.+?)"', re.DOTALL).findall(html)
+                for movieUrl, name, img, imdbUrl in match:
+                        name = name.strip()
+                        r = re.search('^(.+?) ([\d][\d][\d][\d]) ', name)
+                        year = '0'
+                        title = ''
+                        if r:
+                                title, year = r.groups()
+                        addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': movieUrl, 'title': title, 'year': year}, {'title':  name}, img= img)
                 if 'Previous Entries' not in html:
                         break
 
@@ -74,10 +81,11 @@ def GetTitles(url, startPage= '1', numOfPages= '1'): # Get Movie Titles
        	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
-def GetLinks(url): # Get Links
-        print '***************************************************** In GetLinks %s' % url
+def GetLinks(url, title='', year='0'): # Get Links
+        print 'In GetLinks %s' % url
         html = net.http_GET(url).content
-        listitem = GetMediaInfo(html)
+        listitem = GetMediaInfo(title, year)
+
         content = html
         r = re.search('</strong></span>', html)
         if r:
@@ -88,7 +96,6 @@ def GetLinks(url): # Get Links
                 content = content[:r.start()]
                 
         match = re.compile('href="(.+?)"').findall(content)
-        listitem = GetMediaInfo(content)
         autoUrl = None
         for url in match:
                 try:
@@ -99,7 +106,6 @@ def GetLinks(url): # Get Links
 
                         if 'oneclick' in host:
                                 url = net.http_GET(url).get_url()
-                                print 'redirect url is %s' % url
                                 if '?' in url:
                                         link = url.partition('?')
                                         url = link[2]
@@ -122,7 +128,6 @@ def GetLinks(url): # Get Links
                                 if not autoUrl and 'megashare' in url:
                                         autoUrl = url
                                         
-                                print 'in GetLinks if loop'
                                 title = url.rpartition('/')
                                 title = title[2].replace('.html', '')
                                 title = title.replace('.htm', '')
@@ -132,10 +137,8 @@ def GetLinks(url): # Get Links
 
         find = re.search('<table border="0" width="90%"', html)
         if find:
-                print 'in comments if'
                 html = html[find.end():]
                 match = re.compile('<a href="(.+?)" rel="nofollow"', re.DOTALL).findall(html)
-                print len(match)
                 for url in match:
                         host = GetDomain(url)
                         if 'Unknown' in host:
@@ -147,7 +150,6 @@ def GetLinks(url): # Get Links
                                 continue
                         try:
                                 if urlresolver.HostedMediaFile(url= url):
-                                        print 'in GetLinks if loop'
                                         title = url.rpartition('/')
                                         title = title[2].replace('.html', '')
                                         title = title.replace('.htm', '')
@@ -171,12 +173,11 @@ def GetDomain(url):
         return domain
 
 
-def GetMediaInfo(html):
+def GetMediaInfo(title, year):
+        print title
+        print year
         listitem = xbmcgui.ListItem()
-        match = re.search('og:title" content="(.+?) \((.+?)\)', html)
-        if match:
-                print match.group(1) + ' : '  + match.group(2)
-                listitem.setInfo('video', {'Title': match.group(1), 'Year': int(match.group(2)) } )
+        listitem.setInfo('video', {'Title': title, 'Year': int(year) } )
         return listitem
 
 def Categories():  #categories
@@ -215,7 +216,6 @@ def GetSearchQuery():
 def Search(query):
         url = 'http://www.google.com/search?q=site:oneclickmoviez.com ' + query
         url = url.replace(' ', '+')
-        print url
         html = net.http_GET(url).content
         match = re.compile('<h3 class="r"><a href="(.+?)".+?onmousedown=".+?">(.+?)</a>').findall(html)
         for url, title in match:
@@ -229,7 +229,7 @@ if mode == 'main':
 elif mode == 'GetTitles': 
 	GetTitles(url, startPage, numOfPages)
 elif mode == 'GetLinks':
-	GetLinks(url)
+	GetLinks(url, title, year)
 elif mode == 'GetSearchQuery':
 	GetSearchQuery()
 elif mode == 'Search':
