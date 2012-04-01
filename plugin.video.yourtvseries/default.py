@@ -14,6 +14,8 @@ except:
 	from pysqlite2 import dbapi2 as sqlite
 	print "Loading pysqlite2 as DB engine"
 
+addon_id = 'plugin.video.yourtvseries'
+plugin = xbmcaddon.Addon(id=addon_id)
 
 DB = os.path.join(xbmc.translatePath("special://database"), 'yourtvseries.db')
 BASE_URL = 'http://www.yourtvseri.es'
@@ -25,6 +27,11 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Thriller', 'War', 'Western']
 net = Net()
 addon = Addon('plugin.video.yourtvseries', sys.argv)
+
+hdVideo = True
+
+if plugin.getSetting('HD') == 'false':
+        hdVideo = False
 
 ##### Queries ##########
 mode = addon.queries['mode']
@@ -79,11 +86,15 @@ def GetLinks(url): # Get TV Links
         print 'In GetLinks %s' % url
         html = net.http_GET(url).content
         html = html.encode('utf-8')
-        r  = re.search('_video_source" href="(.+?)"', html)
-        if not r:
+        r  = re.findall('_video_source" href="(.+?)"', html)
+        if len(r) <= 1:
                 print 'could not obtain video'
                 return
-        url = r.group(1)
+        if hdVideo:
+                qual = len(r) - 2
+        else:
+                qual = 0
+        url = r[qual]
         url = url.replace('amp;', '')
         print 'first url is %s' % url
         orig_html = net.http_GET(url).content
@@ -114,8 +125,10 @@ def GetLinks(url): # Get TV Links
 	xbmc.Player().play(stream_url, listitem)
 
 def GetMediaInfo(html):
+        print '----------------- in GetMediaInfo'
         listitem = xbmcgui.ListItem()
-        match = re.search('smaller">.+?>(.+?)</a> Season (\d\d) Episode (\d\d) ', html)
+        match = re.search('<title>Watch (.+?) Season (\d\d) Episode (\d\d) ', html, re.DOTALL)
+        print match
         if match:
                 s = match.group(2)
                 e = match.group(3)

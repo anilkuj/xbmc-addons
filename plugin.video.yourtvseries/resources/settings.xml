@@ -1,0 +1,5 @@
+<settings>
+   <category label="General">
+	<setting id="HD" type="bool" label="30200" default="true" visible="true"/>
+   </category>
+</settings>
