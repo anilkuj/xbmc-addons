@@ -2,5 +2,6 @@
    <category label="General">
 	<setting id="hideAdult" type="bool" label="30200" default="true" visible="true"/>
 	<setting id="autoPlay" type="bool" label="30201" default="true" visible="true"/>
+	<setting id="enableMeta" type="bool" label="30202" default="false" visible="true"/>
    </category>
 </settings>

@@ -1,3 +1,5 @@
+[B]Version 0.1.2[/B]
+- Added metadata support, watch trailer and movie info on context menu
 [B]Version 0.1.1[/B]
 - Added subitle support
 [B]Version 0.1.0[/B]

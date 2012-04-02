@@ -61,11 +61,12 @@
     </extension>
 </addon>
 
-<addon id="plugin.video.oneclickmoviez" version="0.1.1" name="OnceClickMoviez" provider-name="anilkuj">
+<addon id="plugin.video.oneclickmoviez" version="0.1.2" name="OnceClickMoviez" provider-name="anilkuj">
     <requires>
         <import addon="xbmc.python" version="1.0"/>
         <import addon="script.module.t0mm0.common" version="0.0.1"/>
         <import addon="script.module.urlresolver" version="0.0.1"/>
+        <import addon="script.module.metahandler" version="1.0.0"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>video</provides>
