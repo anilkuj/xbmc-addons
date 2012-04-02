@@ -295,6 +295,11 @@ def GetDomain(url):
 
 
 def GetMediaInfo(title, year):
+        print 'In GetMediaInfo'
+        print title
+        print year
+        if not year:
+                year = '0'
         listitem = xbmcgui.ListItem()
         listitem.setInfo('video', {'Title': title, 'Year': int(year) } )
         return listitem
