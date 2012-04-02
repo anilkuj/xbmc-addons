@@ -1,3 +1,5 @@
+[B]Version 0.1.3[/B]
+Fixed issue with metada trailer_url
 [B]Version 0.1.2[/B]
 - Added metadata support, watch trailer and movie info on context menu
 [B]Version 0.1.1[/B]

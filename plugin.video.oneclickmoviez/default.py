@@ -151,7 +151,7 @@ def  ListMovieTitle(section, content):
                         if meta['title']:
                                 name = meta['title']
 
-                        if meta['trailer_url']:
+                        if 'trailer_url' in meta and meta['trailer_url']:
                                 trurl = meta['trailer_url']
                                 trurl = re.sub('&feature=related','',trurl)
                                 trurl = trurl.encode('base-64').strip()
