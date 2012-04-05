@@ -301,7 +301,10 @@ def GetMediaInfo(title, year):
         if not year:
                 year = '0'
         listitem = xbmcgui.ListItem()
-        listitem.setInfo('video', {'Title': title, 'Year': int(year) } )
+        try:
+                listitem.setInfo('video', {'Title': title, 'Year': int(year) } )
+        except:
+                listitem.setInfo('video', {'Title': title, 'Year': 0 } )
         return listitem
 
 def Categories():  #categories
