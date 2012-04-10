@@ -4,6 +4,7 @@
 	<setting id="tvlinks-username" type="text" label="30201" default="" enable="!eq(-1,false)" visible="true"/>
 	<setting id="tvlinks-password" type="text" label="30202" default="" option="hidden" enable="!eq(-2,false)" visible="true"/>
 	<setting id="enableMeta" type="bool" label="30203" default="false" visible="true"/>
+	<setting id="autoPlay" type="bool" label="Enable Auto Play" default="false" visible="true"/>
    </category>
    <category label="Auto-View">
    	<setting id="auto-view" type="bool" label="Enable Automatic View" default="false"/>

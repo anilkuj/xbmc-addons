@@ -23,7 +23,7 @@ metaget=metahandlers.MetaData(preparezip=prepare_zip)
 addon_id = 'plugin.video.tvlinks'
 plugin = xbmcaddon.Addon(id=addon_id)
 
-DB = os.path.join(xbmc.translatePath("special://database"), 'tvlinks.db')
+DB = os.path.join(xbmc.translatePath("special://database"), 'tvlinkscache.db')
 BASE_URL = 'http://www.tv-links.eu'
 AZ_DIRECTORIES = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y', 'Z']
 GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Celebrities', 'Comedy', 'Cooking/Food',
@@ -39,9 +39,13 @@ dialog = xbmcgui.Dialog()
 pages = '2'
 
 enableMeta = True
+autoPlay = True
 
 if plugin.getSetting('enableMeta') == 'false':
         enableMeta = False
+
+if plugin.get_setting('autoPlay') == 'false':
+        autoPlay = False
 
 try:
         os.makedirs(os.path.dirname(cookie_jar))
@@ -66,7 +70,26 @@ startPage = addon.queries.get('startPage', None)
 numOfPages = addon.queries.get('numOfPages', None)
 count = addon.queries.get('count', None)
 season = addon.queries.get('season', None)
+title = addon.queries.get('title', None)
+episode = addon.queries.get('episode', None)
 imdbnum = addon.queries.get('imdbnum', None)
+
+
+def initDatabase():
+	addon.log('Building tvlinks Database')
+	if not os.path.isdir(os.path.dirname(DB)):
+		os.makedirs(os.path.dirname(DB))
+	db = sqlite.connect(DB)
+	db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
+	db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
+	db.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum)')
+	db.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type, title, season, episode, year, bookmark)')
+	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
+	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
+	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_bmk ON bookmarks (video_type, title, season, episode, year)')
+	db.commit()
+	db.close()
+
 
 def SaveFav(section, url, name=None, year=None, imdbid=None):
         match = re.search(' class="dark">[A-Z#]<.+?href=".+?".*?>(.+?) \((.+?)\)<.+?imdb.com.title.(.+?)\/', html)
@@ -133,10 +156,15 @@ def GetLinks(section, url, showTitle=None, seasonNum=None, episodeNum=None, star
                         html = net.http_GET(pageUrl).content
                 print pageUrl
                 match = re.compile('return frameLink.\'(.+?)\'.+?Play full video.+?bold">(.+?)<.+?green">(.+?) voted').findall(html)
+                firstVideo = False
                 for gatewayId, host, votes in match:
                         name = str(count) + ". " + host + " " + votes
                         if urlresolver.HostedMediaFile(host=host, media_id='xxx'):
-                                addon.add_directory({'mode': 'PlayVideo', 'section': section, 'url': gatewayId, 'listitem': listitem}, {'title':  name}, total_items=len(match))
+                                if autoPlay and not firstVideo:
+                                        firstVideo = True
+                                        PlayVideo( section, gatewayId, showTitle, int(seasonNum, int(episodeNum))
+                                addon.add_directory({'mode': 'PlayVideo', 'section': section, 'url': gatewayId,
+                                                     'title': showTitle, 'season': int(seasonNum), 'episode': int(episodeNum)}, {'title':  name}, total_items=len(match))
                         count = count + 1
        	if end < last:
                 addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': url, 'showTitle': showTitle, 'seasonNum': seasonNum,
@@ -151,13 +179,20 @@ def GetLastPage(html):
                 lastPage = int(match[len(match) - 2])
         return lastPage
         
-
-def PlayVideo(section, gatewayId, listitem):
+def PlayVideo(section, gatewayId, title, season, episode):
         url = 'http://www.tv-links.eu/gateway.php?data='+gatewayId
         res = net.http_GET(url)
         finalurl = res.get_url()
         stream_url = urlresolver.HostedMediaFile(finalurl).resolve()
-        xbmc.Player(xbmc.PLAYER_CORE_DVDPLAYER).play(stream_url, listitem)
+        #xbmc.Player(xbmc.PLAYER_CORE_DVDPLAYER).play(stream_url, listitem)
+        playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+	playlist.clear()
+        playlist.add(url=stream_url, listitem=listitem)
+	player = playback.Player(video_type=section, title=title, season=season, episode=episode)
+	player.play(playlist)
+	while player._playbackLock.isSet():
+		addon.log('Main function. Playback lock set. Sleeping for 250.')
+		xbmc.sleep(250)
 
 
 def MainMenu():  #homescreen
@@ -454,6 +489,7 @@ def setView(content, viewType):
 	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_VIDEO_RUNTIME )
 	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_GENRE )
 
+initDatabase()
 
 if mode == 'main': 
 	MainMenu()
@@ -484,6 +520,6 @@ elif mode == 'Favorites':
 elif mode == 'Search':
 	Search(query)
 elif mode == 'PlayVideo':
-	PlayVideo(section, url, listitem)
+	PlayVideo(section, url, title, season, episode)
 elif mode == 'ResolverSettings':
         urlresolver.display_settings()
