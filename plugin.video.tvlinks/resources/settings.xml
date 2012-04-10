@@ -3,5 +3,13 @@
 	<setting id="tvlinks-account" type="bool" label="30200" default="false" visible="true"/>
 	<setting id="tvlinks-username" type="text" label="30201" default="" enable="!eq(-1,false)" visible="true"/>
 	<setting id="tvlinks-password" type="text" label="30202" default="" option="hidden" enable="!eq(-2,false)" visible="true"/>
+	<setting id="enableMeta" type="bool" label="30203" default="false" visible="true"/>
+   </category>
+   <category label="Auto-View">
+   	<setting id="auto-view" type="bool" label="Enable Automatic View" default="false"/>
+   	<setting id="tvshows-view" type="number" label="TV Shows View" default="503" enable="!eq(-2,false)"/>
+   	<setting id="seasons-view" type="number" label="Seasons View" default="504" enable="!eq(-3,false)"/>
+   	<setting id="episodes-view" type="number" label="Episodes View" default="504" enable="!eq(-4,false)"/>
+   	<setting id="default-view" type="number" label="Default View" default="50" enable="!eq(-5,false)"/>
    </category>
 </settings>

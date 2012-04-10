@@ -6,6 +6,8 @@ from t0mm0.common.addon import Addon
 from t0mm0.common.net import Net
 import datetime as dt
 import HTMLParser
+from metahandler import metahandlers
+import sys, traceback
 
 
 try:
@@ -14,6 +16,9 @@ try:
 except:
 	from pysqlite2 import dbapi2 as sqlite
 	print "Loading pysqlite2 as DB engine"
+
+prepare_zip = False
+metaget=metahandlers.MetaData(preparezip=prepare_zip)
 
 addon_id = 'plugin.video.tvlinks'
 plugin = xbmcaddon.Addon(id=addon_id)
@@ -33,6 +38,10 @@ net = Net(cookie_file= cookie_jar)
 dialog = xbmcgui.Dialog()
 pages = '2'
 
+enableMeta = True
+
+if plugin.getSetting('enableMeta') == 'false':
+        enableMeta = False
 
 try:
         os.makedirs(os.path.dirname(cookie_jar))
@@ -56,19 +65,8 @@ listitem = addon.queries.get('listitem', None)
 startPage = addon.queries.get('startPage', None)
 numOfPages = addon.queries.get('numOfPages', None)
 count = addon.queries.get('count', None)
-
-
-def initDatabase():
-	print "Building tvlinks Database"
-	if ( not os.path.isdir( os.path.dirname(
-                ) ) ):
-		os.makedirs( os.path.dirname( DB ) )
-	db = sqlite.connect( DB )
-	cursor = db.cursor()
-	cursor.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents);')
-	cursor.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, img);')
-	db.commit()
-	db.close()
+season = addon.queries.get('season', None)
+imdbnum = addon.queries.get('imdbnum', None)
 
 def SaveFav(section, url, name=None, year=None, imdbid=None):
         match = re.search(' class="dark">[A-Z#]<.+?href=".+?".*?>(.+?) \((.+?)\)<.+?imdb.com.title.(.+?)\/', html)
@@ -89,13 +87,23 @@ def SaveFav(section, url, name=None, year=None, imdbid=None):
 def GetTitles(section, url, episode = False): # Get Movie Titles
         print 'tvlinks get Movie Titles Menu %s' % url
         html = net.http_GET(url).content
-        match = re.compile('<li> <a href="(.+?)" class="list cfix"> <span class="c1">(.+?)<').findall(html)
-        for url, name in match:
-                #name = name + '  ( ' +  rating + ' )'
+        match = re.compile('<li> <a href="(.+?)".+?c1">(.+?)<.+?c2">(.*?)<').findall(html)
+        for url, name, year in match:
                 if section == 'tv':
-                        addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url}, {'title':  name})
+                        if enableMeta:
+                                print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %s' % name
+                                meta = metaget.get_meta('tvshow', name, year)
+				if meta['imdb_id'] =='' and meta['tvdb_id'] =='':
+					meta = metaget.get_meta('tvshow', name)
+
+				addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url},
+                                                    meta, img= meta['cover_url'], fanart= meta['backdrop_url'], total_items=len(match))
+                        else:
+                                addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url}, {'title':  name}, total_items=len(match))
                 else: 
-                        addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': BASE_URL + url, 'startPage': '1', 'numOfPages': pages}, {'title':  name}, img=BASE_URL + img)
+                        addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': BASE_URL + url,
+                                             'startPage': '1', 'numOfPages': pages}, {'title':  name}, img=BASE_URL + img, total_items=len(match))
+        setView('tvshows', 'tvshows-view')
        	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def GetLinks(section, url, showTitle=None, seasonNum=None, episodeNum=None, startPage= '1', numOfPages= '1', count= '1'): # Get TV/Movie Links
@@ -128,7 +136,7 @@ def GetLinks(section, url, showTitle=None, seasonNum=None, episodeNum=None, star
                 for gatewayId, host, votes in match:
                         name = str(count) + ". " + host + " " + votes
                         if urlresolver.HostedMediaFile(host=host, media_id='xxx'):
-                                addon.add_directory({'mode': 'PlayVideo', 'section': section, 'url': gatewayId, 'listitem': listitem}, {'title':  name})
+                                addon.add_directory({'mode': 'PlayVideo', 'section': section, 'url': gatewayId, 'listitem': listitem}, {'title':  name}, total_items=len(match))
                         count = count + 1
        	if end < last:
                 addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': url, 'showTitle': showTitle, 'seasonNum': seasonNum,
@@ -141,7 +149,6 @@ def GetLastPage(html):
         match = re.compile("'?apg=([\d]+)'").findall(html)
         if match:
                 lastPage = int(match[len(match) - 2])
-        print 'total pages %s ' % lastPage
         return lastPage
         
 
@@ -149,15 +156,12 @@ def PlayVideo(section, gatewayId, listitem):
         url = 'http://www.tv-links.eu/gateway.php?data='+gatewayId
         res = net.http_GET(url)
         finalurl = res.get_url()
-        print 'final url is %s' % finalurl
         stream_url = urlresolver.HostedMediaFile(finalurl).resolve()
-        print 'stream url is %s' % stream_url
         xbmc.Player(xbmc.PLAYER_CORE_DVDPLAYER).play(stream_url, listitem)
 
 
 def MainMenu():  #homescreen
-        #addon.add_directory({'mode': 'LoadCategories', 'section': 'movies'}, {'title':  'Movies'})
-	#addon.add_directory({'mode': 'LoadCategories', 'section': 'tv-shows'}, {'title':  'TV Shows'})
+
 	addon.add_directory({'mode': 'BrowseLatest', 'section': 'tv'}, {'title':  'Latest'})
 	addon.add_directory({'mode': 'BrowsePopular', 'section': 'tv'}, {'title':  'Popular'})
         addon.add_directory({'mode': 'BrowseAtoZ', 'section': 'tv'}, {'title':  'A-Z'})
@@ -168,14 +172,6 @@ def MainMenu():  #homescreen
         addon.add_directory({'mode': 'ResolverSettings'}, {'title':  'Resolver Settings'})
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
         
-#def LoadCategories(section): #Categories
-         
-        #addon.add_directory({'mode': 'BrowseAtoZ', 'section': section}, {'title':  'A-Z'})
-	#addon.add_directory({'mode': 'BrowseGenre', 'section': section}, {'title':  'Genres'})
-	#addon.add_directory({'mode': 'GetTitles', 'section': section}, {'title':  'Favorites'})
-	#addon.add_directory({'mode': 'Search', 'section': section}, {'title':  'Search'})
-	#xbmcplugin.endOfDirectory(int(sys.argv[1]))
-
 def BrowseAtoZ(section=None, genre=None): 
 	print 'Browse by alphabet screen'
 	addon.add_directory({'mode': 'GetResults', 'section': section, 'genre': genre, 'letter': '0-9'}, {'title':  '#'})
@@ -185,26 +181,57 @@ def BrowseAtoZ(section=None, genre=None):
 
 def BrowseLatest(section=None):
         print 'Browse Latest screen'
+        xbmcplugin.setContent( int( sys.argv[1] ), 'tvshows' )
         d = dt.datetime.now() - dt.timedelta( days = 1 )
         latest = '%d/%d/%d' %(d.month, d.day, d.year)
         url = BASE_URL + '/schedule.html?date=' + latest
         html = net.http_GET(url).content
         match = re.compile('width="45" alt="(.+?)".+?c2 brd_r_dot"><a href="(.+?)">Season (.+?), Episode (.+?)<.+?em><a.+?>(.+?)<', re.MULTILINE | re.DOTALL).findall(html)
+        imdbnum = None
         for title, url, seasonNum, episodeNum, episodeTitle in match:
                 name = title + ' S' +  seasonNum + 'xE' + episodeNum + ' : ' + episodeTitle
+                titleurl = BASE_URL + url
                 url = BASE_URL + url + 'video-results/'
-                addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': url, 'startPage': '1', 'numOfPages': pages}, {'title':  name})
+                imdbnum = ''
+                temp = titleurl.partition('season_')
+                titleurl = temp[0]
+                ephtml = net.http_GET(titleurl).content
+                r = re.search('imdb.com/title/(.+?)/', ephtml, re.DOTALL)
+                if r: imdbnum = r.group(1)
+                if enableMeta and imdbnum:
+                        try:
+				meta = metaget.get_episode_meta(name=episodeTitle,imdb_id=imdbnum,season=seasonNum, episode=episodeNum)
+			except Exception as e:
+				meta['cover_url'] = ''
+				meta['backdrop_url'] = ''
+				print 'Error %s for %s season %s episode %s with imdbnum %s' % (e, title,seasonNum,episodeNum,imdbnum)
+                                #print "*** print_exc:"
+                                #traceback.print_exc()
+			meta['title'] = name
+			addon.add_directory({'mode': 'GetLinks', 'url': url, 'startPage':'1', 'numOfPages': pages},
+                                                    meta, img= meta['cover_url'], fanart= meta['backdrop_url'], total_items=len(match))
+                else:
+                        addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': url, 'startPage': '1', 'numOfPages': pages}, {'title':  name}, total_items=len(match))
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
                 
 
 def BrowsePopular(section=None):
         print 'Browse Popular screen'
+        xbmcplugin.setContent( int( sys.argv[1] ), 'tvshows' )
         url = BASE_URL
         html = net.http_GET(url).content
         match = re.compile('<li> <a href="(.+?)".+?bigger">(.+?)<').findall(html)
         if section == 'tv':
                 for url, name in match:
-                        addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url}, {'title':  name})
+                        if enableMeta:
+                                meta = metaget.get_meta('tvshow', name, '0')
+				if meta['imdb_id'] =='' and meta['tvdb_id'] =='':
+					meta = metaget.get_meta('tvshow', name)
+
+				addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url},
+                                                    meta, img= meta['cover_url'], fanart= meta['backdrop_url'], total_items=len(match))
+                        else:
+                                addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url}, {'title':  name}, total_items=len(match))
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
                 
 
@@ -230,12 +257,29 @@ def GetSearchQuery(section):
                 return
 
 def Search(query):
+        print 'In search'
+        setView('tvshows', 'tvshows-view')
         url = BASE_URL + '/_search/?s='  + query
         html = net.http_GET(url).content
-        match = re.compile('<li> <a href="(.+?)".+?src="(.+?)".+?bold">(.+?)<.+?Category.+?> (.+?),').findall(html)
-        for url, img, name, cat in match:
-                if  'TV' in cat:
-                        addon.add_directory({'mode': 'GetSeasons', 'section': 'tv', 'url': BASE_URL + url}, {'title':  name}, img= img)
+        print 'got search results'
+        match = re.findall('<li> <a href="(.+?)".+?bold">(.+?)<.+?Released:<.+?(\d\d\d\d)', html)
+        print len(match)
+        for url, name, year in match:
+                if  'tv-shows' in url:
+                        if enableMeta:
+                                name = name.encode('utf-8')
+                                print name
+                                meta = metaget.get_meta('tvshow', name, year)
+				if meta['imdb_id'] =='' and meta['tvdb_id'] =='':
+					meta = metaget.get_meta('tvshow', name)
+				if meta['cover_url'] in ('/images/noposter.jpg',''):
+                                        meta['cover_url'] = img
+				addon.add_directory({'mode': 'GetSeasons', 'section': 'tv', 'url': BASE_URL + url},
+                                                    meta, img= meta['cover_url'], fanart= meta['backdrop_url'], total_items=len(match))
+                        else:
+                                addon.add_directory({'mode': 'GetSeasons', 'section': 'tv', 'url': BASE_URL + url}, {'title':  name}, total_items=len(match))
+        print 'end of for loop'
+	setView('tvshows', 'tvshows-view')
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def GetResults(section=None, genre=None, letter=None, page=None): 
@@ -259,32 +303,80 @@ def GetSeasons(section, url):
       	xbmcplugin.setContent( int( sys.argv[1] ), 'seasons' )
 	print 'Seasons for TV Show %s' % url
         html = net.http_GET(url).content
-	#shows = re.compile("Season (\d+)<\/div>(.+?)<.a> <.li> <.ul>|Season (\d+) <em(.+?)<.a> <.li> <.ul>", re.DOTALL).findall(html)
-        shows = re.compile("Season (\d+)<\/div>(.+?)<.a> <.li> <.ul>", re.DOTALL).findall(html)   
+        seasons = re.findall('onclick="seasonShow\(\'([\d]+)\'', html)
+        r = re.search('<h1.+?/">(.+?)<.+?imdb.com/title/(.+?)/', html, re.DOTALL)
+        title = ''
+        imdbnum = ''
+        if r: title, imdbnum = r.groups()
+        season_meta = []
+        if enableMeta:
+                        try :
+                                season_meta = metaget.get_seasons(title, imdbnum, seasons)
+                        except Exception as e:
+                                print 'Error retrieveing  season meta %s' % e
+                                print "*** print_exc:"
+                                traceback.print_exc()
+        shows = re.compile("Season (\d+)<\/div>(.+?)<.a> <.li> <.ul>", re.DOTALL).findall(html)
+        num = 0
 	if shows:
 		for season_name, episodes in shows:
-                        #episodes = episodes.encode('utf8')
-                        season_name = 'Season ' + season_name
-                        addon.add_directory({'mode': 'GetEpisodes', 'section': section, 'episodes': episodes.encode("utf-8")}, {'title':  season_name})
+                        if enableMeta and imdbnum:
+                                try: meta = season_meta[num]
+                                except: meta = {'cover_url': '',  'backdrop_url': ''}
+                                season_name = 'Season ' + season_name
+                                meta['title'] = season_name
+                                if not meta['cover_url']: meta['cover_url'] = meta['backdrop_url']
+                                addon.add_directory({'mode': 'GetEpisodes', 'section': section, 'episodes': episodes.encode("utf-8"), 'season': meta['season'], 'imdbnum': imdbnum},
+                                                    meta, img= meta['cover_url'], fanart= meta['backdrop_url'], total_items=len(shows))
+                        else:
+                                season_name = 'Season ' + season_name
+                                addon.add_directory({'mode': 'GetEpisodes', 'section': section, 'episodes': episodes.encode("utf-8")}, {'title':  season_name}, total_items=len(shows))
+                        num += 1
 
 	shows = re.compile("Season (\d+) <em(.+?)<.a> <.li> <.ul>", re.DOTALL).findall(html)   
 	if shows:
 		for season_name, episodes in shows:
-                        #episodes = episodes.encode('utf8')
-                        season_name = 'Season ' + season_name
-                        addon.add_directory({'mode': 'GetEpisodes', 'section': section, 'episodes': episodes.encode("utf-8")}, {'title':  season_name})
+                        if enableMeta and imdbnum:
+                                try: meta = season_meta[num]
+                                except: meta = {'cover_url': '',  'backdrop_url': ''}
+                                season_name = 'Season ' + season_name
+                                meta['title'] = season_name
+                                if not meta['cover_url']: meta['cover_url'] = meta['backdrop_url']
+                                addon.add_directory({'mode': 'GetEpisodes', 'section': section, 'episodes': episodes.encode("utf-8"), 'season': meta['season'], 'imdbnum': imdbnum},
+                                                    meta, img= meta['cover_url'], fanart= meta['backdrop_url'], total_items=len(shows))
+                        else:
+                                season_name = 'Season ' + season_name
+                                addon.add_directory({'mode': 'GetEpisodes', 'section': section, 'episodes': episodes.encode("utf-8")}, {'title':  season_name}, total_items=len(shows))
+                        num += 1
+        setView('seasons', 'seasons-view')
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
-def GetEpisodes(section, episodes): 
+def GetEpisodes(section, episodes, season= None, imdbnum= None): 
 	xbmcplugin.setContent( int( sys.argv[1] ), 'episodes' )
 	r = 'href="(.+?)".+?c1">(.+?)<.+?c2">(.+?)<'
-	episodes = re.compile(r, re.DOTALL).findall(episodes) 
+	episodes = re.compile(r, re.DOTALL).findall(episodes)
+	
 	for epurl, epnum, eptitle in episodes:
-		print '%s @ %s @ %s' %(epnum, eptitle, epurl)
 		title = epnum + ' : ' + eptitle
 		url = BASE_URL + epurl + 'video-results/'
-                addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': url, 'startPage':'1', 'numOfPages': pages}, {'title':  title.decode("utf-8")})
+		meta = {}
+		if enableMeta and imdbnum:
+                        try:
+                                epnum = epnum.partition(' ')
+				meta = metaget.get_episode_meta(name=eptitle,imdb_id=imdbnum,season=int(season), episode=int(epnum[2]))
+			except Exception as e:
+				meta['cover_url'] = ''
+				meta['backdrop_url'] = ''
+                                print "*** print_exc:"
+                                traceback.print_exc()
+			meta['title'] = title.decode("utf-8")
+			print 'adding dir'
+			addon.add_directory({'mode': 'GetLinks', 'url': url, 'startPage':'1', 'numOfPages': pages},
+                                                   meta, img= "", fanart= "", total_items=len(episodes))
+                else:
+                        addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': url, 'startPage':'1', 'numOfPages': pages}, {'title':  title.decode("utf-8")}, total_items=len(episodes))
+	setView('episodes', 'episodes-view')
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
           
 def Login():
@@ -331,11 +423,36 @@ def Favorites(section):
 			#print html
 			print len(match)
                         for url, img, title in match:
-                                print 'in for loop %s' %url
                                 if '/tv-shows/' in url:
-                                        print 'Found tv-show'
-                                        addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url}, {'title':  title})
+                                        if enableMeta:
+                                                year = '0'
+                                                r = re.search('-(\d\d\d\d)\.', img)
+                                                if r: year = r.group(1)
+                                                meta = metaget.get_meta('tvshow', title, year)
+                                                if meta['imdb_id'] =='' and meta['tvdb_id'] =='':
+                                                        meta = metaget.get_meta('tvshow', title)
+                                                addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url},
+                                                                    meta, img= meta['cover_url'], fanart= meta['backdrop_url'], total_items=len(match))
+                                        else:
+                                                addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url}, {'title':  name}, total_items=len(match))
+		setView('tvshows', 'tvshows-view')
                 xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+def setView(content, viewType):
+	# set content type so library shows more views and info
+	if content:
+		xbmcplugin.setContent(int(sys.argv[1]), content)
+	if addon.get_setting('auto-view') == 'true':
+		xbmc.executebuiltin("Container.SetViewMode(%s)" % addon.get_setting(viewType) )
+
+	# set sort methods - probably we don't need all of them
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_UNSORTED )
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_VIDEO_RATING )
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_PROGRAM_COUNT )
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_VIDEO_RUNTIME )
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_GENRE )
 
 
 if mode == 'main': 
@@ -359,7 +476,7 @@ elif mode == 'GetLinks':
 elif mode == 'GetSeasons':
 	GetSeasons(section, url)
 elif mode == 'GetEpisodes':
-	GetEpisodes(section, episodes)
+	GetEpisodes(section, episodes, season, imdbnum)
 elif mode == 'GetSearchQuery':
 	GetSearchQuery(section)
 elif mode == 'Favorites':
