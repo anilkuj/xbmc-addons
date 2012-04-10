@@ -8,6 +8,7 @@ import datetime as dt
 import HTMLParser
 from metahandler import metahandlers
 import sys, traceback
+import playback
 
 
 try:
