@@ -9,6 +9,7 @@ import HTMLParser
 from metahandler import metahandlers
 import sys, traceback
 import playback
+import CaptchaDialog
 
 
 try:
@@ -37,7 +38,7 @@ DATA_PATH = os.path.join(xbmc.translatePath('special://profile/addon_data/plugin
 cookie_jar = os.path.join(DATA_PATH, "cookiejar.lwp")
 net = Net(cookie_file= cookie_jar)
 dialog = xbmcgui.Dialog()
-pages = '2'
+pages = '1'
 
 enableMeta = True
 autoPlay = True
@@ -45,8 +46,10 @@ autoPlay = True
 if plugin.getSetting('enableMeta') == 'false':
         enableMeta = False
 
-if plugin.get_setting('autoPlay') == 'false':
-        autoPlay = False
+autoWatch = plugin.getSetting('auto-watch') == 'true'
+autoPlay = plugin.getSetting('autoPlay') == 'true'
+
+
 
 try:
         os.makedirs(os.path.dirname(cookie_jar))
@@ -112,10 +115,10 @@ def GetTitles(section, url, episode = False): # Get Movie Titles
         print 'tvlinks get Movie Titles Menu %s' % url
         html = net.http_GET(url).content
         match = re.compile('<li> <a href="(.+?)".+?c1">(.+?)<.+?c2">(.*?)<').findall(html)
+        
         for url, name, year in match:
                 if section == 'tv':
                         if enableMeta:
-                                print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %s' % name
                                 meta = metaget.get_meta('tvshow', name, year)
 				if meta['imdb_id'] =='' and meta['tvdb_id'] =='':
 					meta = metaget.get_meta('tvshow', name)
@@ -131,6 +134,7 @@ def GetTitles(section, url, episode = False): # Get Movie Titles
        	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def GetLinks(section, url, showTitle=None, seasonNum=None, episodeNum=None, startPage= '1', numOfPages= '1', count= '1'): # Get TV/Movie Links
+        print 'In GetLinks'
         html = net.http_GET(url).content
         if showTitle is None:
                 match = re.search('<input type="text" value="(.+?): Season (.+?) Episode (.+?) ', html)
@@ -155,7 +159,6 @@ def GetLinks(section, url, showTitle=None, seasonNum=None, episodeNum=None, star
                 if ( page != start):
                         pageUrl = url + '?apg=' + str(page)
                         html = net.http_GET(pageUrl).content
-                print pageUrl
                 match = re.compile('return frameLink.\'(.+?)\'.+?Play full video.+?bold">(.+?)<.+?green">(.+?) voted').findall(html)
                 firstVideo = False
                 for gatewayId, host, votes in match:
@@ -163,9 +166,11 @@ def GetLinks(section, url, showTitle=None, seasonNum=None, episodeNum=None, star
                         if urlresolver.HostedMediaFile(host=host, media_id='xxx'):
                                 if autoPlay and not firstVideo:
                                         firstVideo = True
-                                        PlayVideo( section, gatewayId, showTitle, int(seasonNum, int(episodeNum))
+                                        PlayVideo( section, gatewayId, showTitle, int(seasonNum), int(episodeNum))
+                                        return
                                 addon.add_directory({'mode': 'PlayVideo', 'section': section, 'url': gatewayId,
-                                                     'title': showTitle, 'season': int(seasonNum), 'episode': int(episodeNum)}, {'title':  name}, total_items=len(match))
+                                                     'title': showTitle, 'season': int(seasonNum), 'episode': int(episodeNum)},
+                                                    {'title':  name}, is_folder= False, total_items=len(match))
                         count = count + 1
        	if end < last:
                 addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': url, 'showTitle': showTitle, 'seasonNum': seasonNum,
@@ -184,16 +189,55 @@ def PlayVideo(section, gatewayId, title, season, episode):
         url = 'http://www.tv-links.eu/gateway.php?data='+gatewayId
         res = net.http_GET(url)
         finalurl = res.get_url()
+        if finalurl == url:
+                print 'Need to handle captcha %s' % finalurl
+                #ResolveCaptcha(res.content)
+                dialog.ok("Tvlinks", "Tv-links has blocked your ip, try again after few hours.")
+                return
         stream_url = urlresolver.HostedMediaFile(finalurl).resolve()
-        #xbmc.Player(xbmc.PLAYER_CORE_DVDPLAYER).play(stream_url, listitem)
+        if not stream_url:
+                dialog.ok("Tvlinks", "Could not obtain video.")
+        listitem = xbmcgui.ListItem(title)
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 	playlist.clear()
+	addon.resolve_url(stream_url)
         playlist.add(url=stream_url, listitem=listitem)
-	player = playback.Player(video_type=section, title=title, season=season, episode=episode)
+	player = playback.Player(video_type="tvshow", title=title, season=season, episode=episode)
 	player.play(playlist)
 	while player._playbackLock.isSet():
 		addon.log('Main function. Playback lock set. Sleeping for 250.')
 		xbmc.sleep(250)
+
+
+def ResolveCaptcha(html):
+        print 'In ResolveCaptcha'
+        r = re.search('iframe src="(.+?)"', html)
+        if not r:
+                return None
+        captchaUrl = r.group(1)
+        data = net.http_GET(captchaUrl).content
+        r = re.search('src="(.+?)"', data)
+        if not r:
+                return None
+        image = 'http://www.google.com/recaptcha/api/%s' %r.group(1)
+        captcha = GetCaptcha(image)
+        if not captcha:
+                return Nonce
+        print 'captcha is %s' % captcha
+        form_values = {}
+        for i in re.finditer('<input type="hidden" name="(.+?)" value="(.+?)">', html):
+                if form_values[i.group(1)] == 'recaptcha_response_field':
+                        form_values[i.group(1)] = captcha
+                else:
+                        form_values[i.group(1)] = i.group(2)
+        print form_values
+        html = self.net.http_POST(post_url, form_data=form_values).content
+        
+        
+def GetCaptcha(img):
+        solver = CaptchaDialog(captcha = img)
+        solution = solver.get()
+        return solution
 
 
 def MainMenu():  #homescreen
@@ -297,14 +341,11 @@ def Search(query):
         setView('tvshows', 'tvshows-view')
         url = BASE_URL + '/_search/?s='  + query
         html = net.http_GET(url).content
-        print 'got search results'
         match = re.findall('<li> <a href="(.+?)".+?bold">(.+?)<.+?Released:<.+?(\d\d\d\d)', html)
-        print len(match)
         for url, name, year in match:
                 if  'tv-shows' in url:
                         if enableMeta:
                                 name = name.encode('utf-8')
-                                print name
                                 meta = metaget.get_meta('tvshow', name, year)
 				if meta['imdb_id'] =='' and meta['tvdb_id'] =='':
 					meta = metaget.get_meta('tvshow', name)
@@ -314,7 +355,6 @@ def Search(query):
                                                     meta, img= meta['cover_url'], fanart= meta['backdrop_url'], total_items=len(match))
                         else:
                                 addon.add_directory({'mode': 'GetSeasons', 'section': 'tv', 'url': BASE_URL + url}, {'title':  name}, total_items=len(match))
-        print 'end of for loop'
 	setView('tvshows', 'tvshows-view')
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -392,7 +432,8 @@ def GetEpisodes(section, episodes, season= None, imdbnum= None):
 	xbmcplugin.setContent( int( sys.argv[1] ), 'episodes' )
 	r = 'href="(.+?)".+?c1">(.+?)<.+?c2">(.+?)<'
 	episodes = re.compile(r, re.DOTALL).findall(episodes)
-	
+	isFolder = True
+	if autoPlay: isFolder = False
 	for epurl, epnum, eptitle in episodes:
 		title = epnum + ' : ' + eptitle
 		url = BASE_URL + epurl + 'video-results/'
@@ -407,11 +448,11 @@ def GetEpisodes(section, episodes, season= None, imdbnum= None):
                                 print "*** print_exc:"
                                 traceback.print_exc()
 			meta['title'] = title.decode("utf-8")
-			print 'adding dir'
 			addon.add_directory({'mode': 'GetLinks', 'url': url, 'startPage':'1', 'numOfPages': pages},
-                                                   meta, img= "", fanart= "", total_items=len(episodes))
+                                                   meta, img= "", fanart= "", is_folder = isFolder, total_items=len(episodes))
                 else:
-                        addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': url, 'startPage':'1', 'numOfPages': pages}, {'title':  title.decode("utf-8")}, total_items=len(episodes))
+                        addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': url, 'startPage':'1', 'numOfPages': pages},
+                                            {'title':  title.decode("utf-8")}, is_folder = isFolder, total_items=len(episodes))
 	setView('episodes', 'episodes-view')
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
           
@@ -427,7 +468,6 @@ def Login():
                 loginURL = "http://www.tv-links.eu/ajax.php"
                 data = { 'action': '7', 'sri': '0.24217649600264657',  'username': user, 'passw': password } #need a random number here ?
                 html = net.http_POST(loginURL, data).content
-                print html
                 net.save_cookies(cookie_jar)
                 net.set_cookies(cookie_jar)
                 html = net.http_GET(BASE_URL).content
@@ -443,9 +483,7 @@ def Login():
 def Favorites(section):
         print 'in Favorites'
   	html = net.http_GET(BASE_URL + "/myaccount.html?zone=favorites" ).content
-  	print html
         numOfFav = re.search( 'class="a_right"><b>(.+?)</', html).group(1)
-        print numOfFav
         totalPages = int(numOfFav) / 12
         totalPages += 1
         if "No favorites yet" in html:
@@ -457,7 +495,6 @@ def Favorites(section):
 				html = net.http_GET("http://www.tv-links.eu/myaccount.html?zone=favorites&ap=" + str(index)).content
 			match = re.compile( 'img"><a href="(.+?)".+?src="(.+?)".+?alt="(.+?)"').findall(html)
 			#print html
-			print len(match)
                         for url, img, title in match:
                                 if '/tv-shows/' in url:
                                         if enableMeta:

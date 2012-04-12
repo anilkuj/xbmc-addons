@@ -7,6 +7,7 @@ import xbmc
 import xbmcgui
 from t0mm0.common.addon import Addon
 from metahandler import metahandlers
+import datetime
 
 try:
 	from sqlite3 import dbapi2 as sqlite
@@ -19,7 +20,7 @@ except:
 # async xbmc events to take complete
 SLEEP_MILLIS = 250
 DB = os.path.join(xbmc.translatePath("special://database"), 'tvlinkscache.db')
-addon = Addon('plugin.video.1channel', sys.argv)
+addon = Addon('plugin.video.tvlinks', sys.argv)
 
 def format_time(seconds):
 	minutes,seconds = divmod(seconds, 60)
@@ -32,7 +33,7 @@ def format_time(seconds):
 # =============================================================================
 class Player(xbmc.Player):
 
-	def __init__(self, imdbnum, video_type, title, season, episode, year):
+	def __init__(self, video_type, title, season, episode, imdbnum=None, year=None):
 		xbmc.Player.__init__(self)
 		self._playbackLock = threading.Event()
 		self._playbackLock.set()
@@ -45,6 +46,7 @@ class Player(xbmc.Player):
 		self.season = season
 		self.episode = episode
 		self.year = year
+		self.is_active = True
 		addon.log('Player created')
 
 	def __del__(self):
@@ -56,13 +58,13 @@ class Player(xbmc.Player):
 		self._tracker = threading.Thread(target=self._trackPosition)
 		self._tracker.start()
 		db = sqlite.connect(DB)
-		bookmark = db.execute('SELECT bookmark FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?', (self.video_type, self.title, self.season, self.episode, self.year)).fetchone()
+		bookmark = db.execute('SELECT max(bookmark) FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=?', (self.video_type, self.title, self.season, self.episode)).fetchone()
 		db.close()
 		if not self._sought and bookmark[0] and bookmark[0]-30 > 0:
-			question = 'Resume %s from %s?' %(self.title, format_time(bookmark))
+			question = 'Resume %s from %s?' %(self.title, format_time(bookmark[0]))
 			resume = xbmcgui.Dialog()
 			resume = resume.yesno(self.title,'',question,'','Start from beginning','Resume')
-			if resume: self.seekTime(bookmark)
+			if resume: self.seekTime(bookmark[0])
 			self._sought = True
 
 
@@ -78,7 +80,7 @@ class Player(xbmc.Player):
 			addon.log('Threshold met. Marking item as watched')
 			self.ChangeWatched(self.imdbnum, self.video_type, self.title, self.season, self.episode, self.year, watched=7)
 			db = sqlite.connect(DB)
-			db.execute('DELETE FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?', (self.video_type, self.title, self.season, self.episode, self.year))
+			db.execute('DELETE FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=?', (self.video_type, self.title, self.season, self.episode))
 			db.commit()
 			db.close()
 		else:

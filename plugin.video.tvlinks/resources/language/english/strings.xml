@@ -4,4 +4,6 @@
     <string id="30201">    Username</string>
     <string id="30202">    Password</string>
     <string id="30203">Enable Metadata</string>
+    <string id="30204">Enable Auto-Watch</string>
+    <string id="30205">       Auto-Watch Percentage</string>
 </strings>

@@ -5,6 +5,9 @@
 	<setting id="tvlinks-password" type="text" label="30202" default="" option="hidden" enable="!eq(-2,false)" visible="true"/>
 	<setting id="enableMeta" type="bool" label="30203" default="false" visible="true"/>
 	<setting id="autoPlay" type="bool" label="Enable Auto Play" default="false" visible="true"/>
+    	<setting id="auto-watch" type="bool" label="30204" default="true"/>
+	<setting id="watched-percent" type="enum" values="70[B] %[/B]|80[B] %[/B]|90[B] %[/B]|100[B] %[/B]" label="30205" default="2" enable="!eq(-1,false)"/>
+
    </category>
    <category label="Auto-View">
    	<setting id="auto-view" type="bool" label="Enable Automatic View" default="false"/>
