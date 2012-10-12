@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+
+  <!-- General -->
+  <category label="30200">
+    <setting id="service" type="enum" label="30218" lvalues="30327|30328|30329|30330" default="0" />
+    <setting id="username" type="text" label="30201" default="" />
+    <setting id="user_password" type="text" option="hidden" label="30202" enable="!eq(-1,)" default="" />
+    <setting id="auto_server" type="bool" label="30219" default="false" />
+    <setting id="server" type="enum" label="30204" enable="eq(-1,false)" lvalues="30210|30211|30212" default="0" />
+    <setting id="server_type" type="enum" label="30205" lvalues="30213|30214" default="0" />
+    <setting id="high_def" type="bool" label="30203" default="true" />
+    <setting id="download_path" type="folder" label="30216" default="" />
+  </category>
+
+  <category label="30400">
+    <setting id="show_30501" type="bool" label="30401" default="true" />
+    <setting id="show_30503" type="bool" label="30403" default="true" />
+    <setting id="show_30504" type="bool" label="30404" default="true" />
+    <setting id="show_30505" type="bool" label="30405" default="true" />
+    <setting id="show_30506" type="bool" label="30406" default="true" />
+    <setting id="show_30507" type="bool" label="30407" default="true" />
+    <setting id="show_30508" type="bool" label="30408" default="true" />
+    <setting id="show_30509" type="bool" label="30409" default="true" />
+    <setting id="show_30510" type="bool" label="30410" default="true" />
+    <setting id="show_30511" type="bool" label="30411" default="true" />
+    <setting id="show_30512" type="bool" label="30412" default="true" />
+    <setting id="show_30513" type="bool" label="30413" default="true" />
+    <setting id="show_30514" type="bool" label="30414" default="true" />
+    <setting id="show_30515" type="bool" label="30415" default="true" />
+    <setting id="show_30516" type="bool" label="30416" default="true" />
+    <setting id="show_30517" type="bool" label="30417" default="true" />
+  </category>
+
+  <category label="30326">
+    <setting id="schedule_plus_limiter" type="enum" label="30206" values="0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31" default="7" />
+    <setting id="schedule_minus_limiter" type="enum" label="30215" values="0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31" default="7" />
+    <setting id="gmt_offset" type="enum" label="30207" lvalues="30300|30301|30302|30303|30304|30305|30306|30307|30308|30309|30310|30311|30312|30313|30314|30315|30316|30317|30318|30319|30320|30321|30322|30323|30324|30325" default="0" />
+    <setting id="gmt_offset_half" type="bool" label="30208" enable="!eq(-1,0)" default="false" />
+    <setting id="daylight_saving_time" type="bool" label="30209" enable="!eq(-2,0)" default="false" />
+    <setting id="show_now_next" type="bool" label="30220" default="true" />
+    <setting id="dbg" type="bool" label="30217" default="false" />
+  </category>
+
+</settings>

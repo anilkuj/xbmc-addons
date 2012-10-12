@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<strings> <!-- English -->
+    <!-- Plugin label strings -->
+    <string id="30100">Channels</string>
+    <string id="30101">Channel</string>
+    <string id="30102">Schedules</string>
+    <string id="30103">Download</string>
+    <string id="30104">Name of download</string>
+    <string id="30105">Number of minutes to record</string>
+    <string id="30106">Playing Now</string>
+    <string id="30107">Playing Next</string>
+    <string id="30108">Video Information</string>
+
+    <!-- Plugin settings strings -->
+    <string id="30200">Settings</string>
+    <string id="30201">Username</string>
+    <string id="30202">Password</string>
+    <string id="30203">High Quality video</string>
+    <string id="30204">Server Location</string>
+    <string id="30205">Server Type</string>
+    <string id="30206">Schedule + days</string>
+    <string id="30207">GMT Offset</string>
+    <string id="30208">Offset + 30 minutes</string>
+    <string id="30209">Daylight Saving Time</string>
+    <string id="30210">EU</string>
+    <string id="30211">US</string>
+    <string id="30212">Asia</string>
+    <string id="30213">RTMP</string>
+    <string id="30214">RTSP</string>
+    <string id="30215">Schedule - days</string>
+    <string id="30216">Download Location</string>
+    <string id="30217">Debug</string>
+    <string id="30218">Service</string>
+    <string id="30219">Auto select server</string>
+    <string id="30220">Show Now/Next in channels</string>
+
+    <string id="30300">Auto</string>
+    <string id="30301">GMT+0</string>
+    <string id="30302">GMT+1</string>
+    <string id="30303">GMT+2</string>
+    <string id="30304">GMT+3</string>
+    <string id="30305">GMT+4</string>
+    <string id="30306">GMT+5</string>
+    <string id="30307">GMT+6</string>
+    <string id="30308">GMT+7</string>
+    <string id="30309">GMT+8</string>
+    <string id="30310">GMT+9</string>
+    <string id="30311">GMT+10</string>
+    <string id="30312">GMT+11</string>
+    <string id="30313">GMT+12</string>
+    <string id="30314">GMT-1</string>
+    <string id="30315">GMT-2</string>
+    <string id="30316">GMT-3</string>
+    <string id="30317">GMT-4</string>
+    <string id="30318">GMT-5</string>
+    <string id="30319">GMT-6</string>
+    <string id="30320">GMT-7</string>
+    <string id="30321">GMT-8</string>
+    <string id="30322">GMT-9</string>
+    <string id="30323">GMT-10</string>
+    <string id="30324">GMT-11</string>
+    <string id="30325">GMT-12</string>
+    <string id="30326">Advanced</string>
+    <string id="30327">MyStreams</string>
+    <string id="30328">Live247</string>
+    <string id="30329">Usport</string>
+    <string id="30330">StarStreams</string>
+
+    <!-- Plugin schedule settings strings -->
+    <string id="30400">Schedules</string>
+    <string id="30401">Show Airs Today</string>
+    <string id="30403">Show Ice Hockey</string>
+    <string id="30404">Show Basketball</string>
+    <string id="30405">Show Baseball</string>
+    <string id="30406">Show Boxing/MMA</string>
+    <string id="30407">Show Cricket</string>
+    <string id="30408">Show Golf</string>
+    <string id="30409">Show Motor Sport</string>
+    <string id="30410">Show Olympics</string>
+    <string id="30411">Show Other Sports</string>
+    <string id="30412">Show Rugby</string>
+    <string id="30413">Show World Football</string>
+    <string id="30414">Show Tennis</string>
+    <string id="30415">Show TV Shows</string>
+    <string id="30416">Show Wrestling</string>
+    <string id="30417">Show American Football</string>
+
+    <!-- Plugin schedule strings -->
+    <string id="30500">Schedules</string>
+    <string id="30501">Airs Today</string>
+    <string id="30503">Ice Hockey</string>
+    <string id="30504">Basketball</string>
+    <string id="30505">Baseball</string>
+    <string id="30506">Boxing/MMA</string>
+    <string id="30507">Cricket</string>
+    <string id="30508">Golf</string>
+    <string id="30509">Motor Sport</string>
+    <string id="30510">Olympics</string>
+    <string id="30511">Other Sports</string>
+    <string id="30512">Rugby</string>
+    <string id="30513">World Football</string>
+    <string id="30514">Tennis</string>
+    <string id="30515">TV Shows</string>
+    <string id="30516">Wrestling</string>
+    <string id="30517">American Football</string>
+
+    <!-- Plugin message strings -->
+    <string id="30600">Error</string>
+    <string id="30601">Download folder not set</string>
+    <string id="30602">Deauthenticate IP</string>
+
+</strings>

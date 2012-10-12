@@ -1,0 +1,46 @@
+[B]TODO:[/B]
+- Login/ipauth .tv -> .me
+- Recurring events for schedule ???
+
+[B]ERRATA:[/B]
+- [XBMC] RTSP playback doesn't work
+
+[B]Version 0.8.0[/B]
+- New server URI schema
+- Change default server to EU
+
+[B]Version 0.7.0[/B]
+- rPI optimizations
+- New backend site starstreams.tv
+
+[B]Version 0.6.0[/B]
+- Re-enable geographical servers.
+
+[B]Version 0.5.0[/B]
+- New credential method.
+
+[B]Version 0.4.0[/B]
+- Server ping test in settings.
+- Remove existing authenticated ip.
+- Fetch (pre-limited) schedules from faster servers.
+- Timezone/DST fixes.
+- Improved fallback channel scraping.
+
+[B]Version 0.3.0[/B]
+- Default to production playback.
+- Testing
+- Cleanup
+
+[B]Version 0.2.0[/B]
+- Added login
+- Added common dependency and fallback (Disabled till update is pushed)
+- Added cache dependency and fallback
+- Added downloader for Eden
+- Added endtime to label for items for today
+- Cosmetic bug fixes
+- Set limit both before and after now for schedules in settings
+- Refactored into modules
+- Filter out duplicates schedule items
+- Match more start and end types(24h items now only show on correct day)
+- Show items scheduled for today on top of listing.
+- Auto timezone should work (Many thanks go out to "fog")
