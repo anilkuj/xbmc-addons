@@ -1,0 +1,4 @@
+[B]Version 0.1.1[/B]
+- Fixed search
+[B]Version 0.1.0[/B]
+- Initial version of irfree.com plugin
