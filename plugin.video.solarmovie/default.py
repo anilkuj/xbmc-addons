@@ -6,6 +6,7 @@ from t0mm0.common.addon import Addon
 from t0mm0.common.net import Net
 import HTMLParser
 import unicodedata
+import htmlentitydefs
 
 try:
 	from sqlite3 import dbapi2 as sqlite
@@ -90,31 +91,31 @@ def GetTitles(section, url, html= None, episode = False): # Get Titles
 def GetLinks(section, url): # Get Movie Links
         print 'In GetLinks %s' % url
         html = net.http_GET(url).content
+        html = html.encode("ascii", "ignore")
         sources = []
-	listitem = xbmcgui.ListItem()
-	if  ( section == 'tv'):
+        print '---------------------------------------------------------'
+        print html
+        print '---------------------------------------------------------'
+        listitem = xbmcgui.ListItem()
+        if  ( section == 'tv'):
                 match = re.search('bradcramp.+?href=".+?>(.+?)<.+?href=".+?>        Season (.+?) .+?[&nbsp;]+Episode (.+?)<', html, re.MULTILINE | re.IGNORECASE | re.DOTALL)
                 listitem.setInfo('video', {'TVShowTitle': match.group(1), 'Season': int(match.group(2)), 'Episode': int(match.group(3)) } )
         else:
                 match = re.search('float:left;">(.+?)<em.+?html">[\n]*(.+?)</a>', html, re.MULTILINE | re.IGNORECASE | re.DOTALL)
                 listitem.setInfo('video', {'Title': match.group(1).strip(), 'Year': int(match.group(2).strip())} )
-                
-        match = re.compile('<tr id=.+?href="(.+?)">(.+?)<.+?votes" \/>(.+?)<.+?class="qualityCell">(.+?)<', re.MULTILINE | re.DOTALL | re.IGNORECASE).findall(html)
+
+        match =  re.compile('<tr id=.+?href="(.+?)">(.+?)<.+?class="qualityCell">(.+?)<', re.MULTILINE | re.DOTALL | re.IGNORECASE).findall(html)
         print ' length of match is %d' % len(match)
         if len(match) > 0:
                 count = 1
-                for url, host, vote, quality in match:
-                        votePer = ""
-                        if '%' in vote:
-                              votePer =   ' - ' + vote.strip()
-                        name = str(count) + ". " + host + votePer +  ' - ' + quality.strip()
+                for url, host, quality in match:
+                        name = str(count) + ". " + host +  ' - ' + quality.strip()
                         if urlresolver.HostedMediaFile(host=host, media_id='xxx'):
                                 addon.add_directory({'mode': 'PlayVideo', 'url': url, 'listitem': listitem}, {'title':  name})
                                 count = count + 1 
                 xbmcplugin.endOfDirectory(int(sys.argv[1]))
-	else:
+        else:
                 return
-           
 
 def PlayVideo(url, listitem):
         print 'in PlayVideo'
@@ -144,8 +145,7 @@ def MainMenu():  #homescreen
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
         
 def LoadCategories(section): #Categories
-
-	addon.add_directory({'mode': 'BrowseLatest', 'section': section}, {'title':  'Latest'})
+        addon.add_directory({'mode': 'BrowseLatest', 'section': section}, {'title':  'Latest'})
         addon.add_directory({'mode': 'BrowsePopular', 'section': section}, {'title':  'Popular'})
         addon.add_directory({'mode': 'BrowseYear', 'section': section}, {'title':  'Year'})
 	addon.add_directory({'mode': 'BrowseGenre', 'section': section}, {'title':  'Genres'})
@@ -159,11 +159,11 @@ def BrowseLatest(section=None):
         html = net.http_GET(BASE_URL).content
         titles = ""
 	if section == 'movies':
-               	match1 = re.search('<div id="first1"', html)
-               	match2 = re.search('<h2>Latest TVs', html)
+               	match1 = re.search('id="tab-latest"', html)
+               	match2 = re.search('<h2>Latest TV Shows</h2>', html)
                	titles = html[match1.end():match2.start()]
         else:
-                match1 = re.search('<h2>Latest TVs', html)
+                match1 = re.search('<h2>Latest TV Shows</h2>', html)
                	match2 = re.search('<div id="sidebar">', html)
                	titles = html[match1.end():match2.start()]
        	GetTitles(section, "", html=titles, episode=True)
@@ -171,15 +171,18 @@ def BrowseLatest(section=None):
 
 def BrowsePopular(section=None):
 	print 'Browse Popular screen'
-        html = net.http_GET(BASE_URL).content
+	url = BASE_URL
+	if section == 'tv':
+                url = BASE_URL + '/tv'
+        html = net.http_GET(url).content
         titles = ""
 	if section == 'movies':
-               	match1 = re.search('<div id="second1"', html)
-               	match2 = re.search('<h2>Most popular TVs today', html)
+               	match1 = re.search('id="tab-popular">', html)
+               	match2 = re.search('id="tab-latest"', html)
                	titles = html[match1.end():match2.start()]
         else:
-                match1 = re.search('<h2>Most popular TVs today', html)
-               	match2 = re.search('<div id="first1"', html)
+                match1 = re.search('id="topcontent"', html)
+               	match2 = re.search('id="sidebar"', html)
                	titles = html[match1.end():match2.start()]
        	GetTitles(section, "", html=titles)
 
