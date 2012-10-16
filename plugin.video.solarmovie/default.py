@@ -84,27 +84,27 @@ def GetTitles(section, url, html= None, episode = False, startPage= '1', numOfPa
         if int(startPage)> 1:
                 pageUrl = url + '?page=' + startPage
         print pageUrl
-        html = net.http_GET(pageUrl).content
+        if html == None:
+                html = net.http_GET(pageUrl).content
 
         start = int(startPage)
         end = start + int(numOfPages)
-        
         last = 2
         match  = re.findall('<li><a href=.+?page=([\d]+)"', html)
         if match:
                 last = match[-1]
-        
+        #print start + ':' + end + ':' + last
         for page in range( start, min(last, end)):
                 if ( page != start):
                         pageUrl = url + '?page=' + str(page)
                         html = net.http_GET(pageUrl).content                
                 match = re.compile('class="coverImage" title="(.+?)".+?href="(.+?)".+?src="(.+?)"', re.MULTILINE | re.IGNORECASE | re.DOTALL).findall(html)
-                for name, url, img in match:
+                for name, movie_url, img in match:
                         name = HTMLParser.HTMLParser().unescape(name)
                         if section == 'tv' and episode == False:
-                                addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url, 'img': img }, {'title':  name}, img= img)
+                                addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + movie_url, 'img': img }, {'title':  name}, img= img)
                         else:
-                                addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': BASE_URL + url}, {'title':  name}, img= img)
+                                addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': BASE_URL + movie_url}, {'title':  name}, img= img)
          # keep iterating until the laast page is reached
         if end < last:
                 addon.add_directory({'mode': 'GetTitles', 'url': url, 'startPage': str(end), 'numOfPages': numOfPages}, {'title': 'Next...'})
@@ -188,7 +188,7 @@ def BrowseLatest(section=None):
                 match1 = re.search('<h2>Latest TV Shows</h2>', html)
                	match2 = re.search('<div id="sidebar">', html)
                	titles = html[match1.end():match2.start()]
-       	GetTitles(section, "", html=titles, episode=True)
+       	GetTitles(section, "", html=titles, episode=True, startPage= 1, numOfPages= 2)
 
 
 def BrowsePopular(section=None):
@@ -206,7 +206,7 @@ def BrowsePopular(section=None):
                 match1 = re.search('id="topcontent"', html)
                	match2 = re.search('id="sidebar"', html)
                	titles = html[match1.end():match2.start()]
-       	GetTitles(section, "", html=titles)
+       	GetTitles(section, "", html=titles, startPage= 1, numOfPages= 2)
 
 
 def BrowseAtoZ(section=None, genre=None): 
@@ -243,7 +243,7 @@ def BrowseYear(section=None, genre=None):
                         url = BASE_URL + '/watch-movies-of-' + str(year) + '.html'
                 else:
                         url = BASE_URL + '/tv/watch-tv-shows-' + str(year) + '.html'
-                addon.add_directory({'mode': 'GetTitles', 'url': url, 'section': section, 'genre': genre, 'numOfPages': '2'}, {'title':  str(year)})
+                addon.add_directory({'mode': 'GetTitles', 'url': url, 'section': section, 'genre': genre, 'startPage': '1', 'numOfPages': '3'}, {'title':  str(year)})
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
         
@@ -263,7 +263,7 @@ def BrowseGenre(section=None, year=None):
                         url = BASE_URL + '/watch-' + genre + '-movies.html'
                 else:
                         url = BASE_URL + '/tv/watch-' + genre + '-tv-shows.html'
-                addon.add_directory({'mode': 'GetTitles', 'url': url, 'section': section, 'year': year, 'numOfPages': '2'}, {'title':  genre})
+                addon.add_directory({'mode': 'GetTitles', 'url': url, 'section': section, 'year': year, 'startPage': '1', 'numOfPages': '3'}, {'title':  genre})
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def GetSearchQuery(section):
@@ -286,7 +286,7 @@ def Search(section, query):
         if section == 'movies':
                 cat = 'movie'
         url = BASE_URL + '/' + cat + '/search/' + query + '/'
-        GetTitles(section, url)
+        GetTitles(section, url, startPage= 1, numOfPages= 3)
 
 def GetResults(section=None, genre=None, letter=None, page=None): 
 	
@@ -301,7 +301,7 @@ def GetResults(section=None, genre=None, letter=None, page=None):
                 suffix = suffix + letter + '/'
                 
 	url = BASE_URL + '/browse/' + section + suffix
-        GetTitles(section, url, numOfPages=2)
+        GetTitles(section, url, startPage= 1, numOfPages= 3)
 
 
 def GetSeasons(section, url, img):
@@ -351,7 +351,7 @@ elif mode == 'BrowsePopular':
 elif mode == 'GetResults': 
 	GetResults(section, genre, letter, page)
 elif mode == 'GetTitles': 
-	GetTitles(section, url)
+	GetTitles(section, url, startPage= startPage, numOfPages= numOfPages)
 elif mode == 'GetLinks':
 	GetLinks(section, url)
 elif mode == 'GetSeasons':
