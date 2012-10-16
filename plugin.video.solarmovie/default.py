@@ -7,6 +7,7 @@ from t0mm0.common.net import Net
 import HTMLParser
 import unicodedata
 import htmlentitydefs
+from metahandler import metahandlers
 
 try:
 	from sqlite3 import dbapi2 as sqlite
@@ -19,6 +20,11 @@ DB = os.path.join(xbmc.translatePath("special://database"), 'solarmovie.db')
 BASE_URL = 'http://www.solarmovie.eu'
 net = Net()
 addon = Addon('plugin.video.solarmovie', sys.argv)
+
+enableMeta = True
+
+if plugin.getSetting('enableMeta') == 'false':
+        enableMeta = False
 
 GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 
           'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Film-Noir', 'Game-Show'
@@ -98,18 +104,51 @@ def GetTitles(section, url, html= None, episode = False, startPage= '1', numOfPa
                 if ( page != start):
                         pageUrl = url + '?page=' + str(page)
                         html = net.http_GET(pageUrl).content                
-                match = re.compile('class="coverImage" title="(.+?)".+?href="(.+?)".+?src="(.+?)"', re.MULTILINE | re.IGNORECASE | re.DOTALL).findall(html)
-                for name, movie_url, img in match:
+                match = re.compile('class="coverImage" title="(.+?)".+?href="(.+?)".+?src="(.+?)".+?<a title=".+?\(([\d]+)\)', re.MULTILINE | re.IGNORECASE | re.DOTALL).findall(html)
+                for name, movie_url, img, year in match:
                         name = HTMLParser.HTMLParser().unescape(name)
                         if section == 'tv' and episode == False:
-                                addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + movie_url, 'img': img }, {'title':  name}, img= img)
+                                if enableMeta:
+                                        meta = metaget.get_meta('tvshow', name, year)
+                                        if meta['imdb_id'] =='' and meta['tvdb_id'] =='':
+                                                meta = metaget.get_meta('tvshow', name)
+                                        addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + movie_url, img= meta['cover_url']},
+                                                meta, img= meta['cover_url'], fanart= meta['backdrop_url'], total_items=len(match))
+                                else:        
+                                        addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + movie_url, 'img': img }, {'title':  name}, img= img)
                         else:
-                                addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': BASE_URL + movie_url}, {'title':  name}, img= img)
+                                cm = []
+                                if section == 'movie' and enableMeta:
+                                        meta = metaget.get_meta('movie', name, year)
+                                        if meta['imdb_id'] =='':
+                                                meta = metaget.get_meta('movie', name)
+                                         if 'trailer_url' in meta and meta['trailer_url']:
+                                                trurl = meta['trailer_url']
+                                                trurl = re.sub('&feature=related','',trurl)
+                                                trurl = trurl.encode('base-64').strip()
+                                                runstring = 'XBMC.RunPlugin(%s?mode=PlayTrailer&url=%s)' %(sys.argv[0], trurl)
+                                                cm.append(('Watch Trailer', runstring))
+                                        cm.append(('Show Information', 'XBMC.Action(Info)'))        
+                                        addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': BASE_URL + movie_url}, meta,
+                                                img= meta['cover_url'], fanart= meta['backdrop_url'], contextmenu_items= cm, context_replace=True)
+                                 else:       
+                                        addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': BASE_URL + movie_url}, {'title':  name}, img= img)
          # keep iterating until the laast page is reached
         if end < last:
                 addon.add_directory({'mode': 'GetTitles', 'url': url, 'startPage': str(end), 'numOfPages': numOfPages}, {'title': 'Next...'})
        	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+def PlayTrailer(url):
+	url = url.decode('base-64')
+	print 'Attempting to resolve and play trailer at %s' % url
+	sources = []
+	hosted_media = urlresolver.HostedMediaFile(url=url)
+	sources.append(hosted_media)
+	source = urlresolver.choose_source(sources)
+	if source: stream_url = source.resolve()
+	else: stream_url = ''
+	xbmc.Player().play(stream_url)
+	
 def GetLinks(section, url): # Get Movie Links
         print 'In GetLinks %s' % url
         html = net.http_GET(url).content
