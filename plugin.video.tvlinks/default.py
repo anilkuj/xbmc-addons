@@ -156,21 +156,25 @@ def GetLinks(section, url, showTitle=None, seasonNum=None, episodeNum=None, star
         else:
                 count = 1
         for page in range( start, min(last, end)):
-                if ( page != start):
+                    print str(count)
+                    if ( page != start):
                         pageUrl = url + '?apg=' + str(page)
-                        html = net.http_GET(pageUrl).content
-                match = re.compile('return frameLink.\'(.+?)\'.+?Play full video.+?bold">(.+?)<.+?green">(.+?) voted').findall(html)
-                firstVideo = False
-                for gatewayId, host, votes in match:
-                        name = str(count) + ". " + host + " " + votes
+                    html = net.http_GET(pageUrl).content
+                    html = html.replace("(","")
+                    html = html.replace(")","")
+                    patron = "frameLink'(.+?)'.+?bold\">(.+?)<"
+                    match = re.compile(patron).findall(html)
+                    firstVideo = False
+                    for gatewayId, host in match:
+                        name = str(count) + ". " + host  
                         if urlresolver.HostedMediaFile(host=host, media_id='xxx'):
-                                if autoPlay and not firstVideo:
-                                        firstVideo = True
-                                        PlayVideo( section, gatewayId, showTitle, int(seasonNum), int(episodeNum))
-                                        return
-                                addon.add_directory({'mode': 'PlayVideo', 'section': section, 'url': gatewayId,
-                                                     'title': showTitle, 'season': int(seasonNum), 'episode': int(episodeNum)},
-                                                    {'title':  name}, is_folder= False, total_items=len(match))
+                            print "se encontro en host"
+                            if autoPlay and not firstVideo:
+                                firstVideo = True
+                                PlayVideo( section, gatewayId, showTitle, int(seasonNum), int(episodeNum))
+                                return                        
+                            addon.add_directory({'mode': 'PlayVideo', 'section': section, 'url': gatewayId, 'title': showTitle, 'season': int(seasonNum), 'episode': int(episodeNum)}, {'title':  name}, is_folder= False, total_items=len(match))
+                        print str(host)
                         count = count + 1
        	if end < last:
                 addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': url, 'showTitle': showTitle, 'seasonNum': seasonNum,
@@ -275,6 +279,7 @@ def BrowseLatest(section=None):
                 imdbnum = ''
                 temp = titleurl.partition('season_')
                 titleurl = temp[0]
+                name = name + " " + url
                 ephtml = net.http_GET(titleurl).content
                 r = re.search('imdb.com/title/(.+?)/', ephtml, re.DOTALL)
                 if r: imdbnum = r.group(1)
@@ -434,11 +439,16 @@ def GetEpisodes(section, episodes, season= None, imdbnum= None):
 	episodes = re.compile(r, re.DOTALL).findall(episodes)
 	isFolder = True
 	if autoPlay: isFolder = False
+	print '---------------------------------------------'
+	print episodes
+	print '---------------------------------------------'
 	for epurl, epnum, eptitle in episodes:
+                print 'In for ' + eptitle
 		title = epnum + ' : ' + eptitle
 		url = BASE_URL + epurl + 'video-results/'
 		meta = {}
 		if enableMeta and imdbnum:
+                        print 'In If ' + eptitle
                         try:
                                 epnum = epnum.partition(' ')
 				meta = metaget.get_episode_meta(name=eptitle,imdb_id=imdbnum,season=int(season), episode=int(epnum[2]))
@@ -450,10 +460,12 @@ def GetEpisodes(section, episodes, season= None, imdbnum= None):
 			meta['title'] = title.decode("utf-8")
 			addon.add_directory({'mode': 'GetLinks', 'url': url, 'startPage':'1', 'numOfPages': pages},
                                                    meta, img= "", fanart= "", is_folder = isFolder, total_items=len(episodes))
+			print 'after add dir'
                 else:
                         addon.add_directory({'mode': 'GetLinks', 'section': section, 'url': url, 'startPage':'1', 'numOfPages': pages},
                                             {'title':  title.decode("utf-8")}, is_folder = isFolder, total_items=len(episodes))
 	setView('episodes', 'episodes-view')
+	print 'end of directory'
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
           
 def Login():
@@ -507,7 +519,7 @@ def Favorites(section):
                                                 addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url},
                                                                     meta, img= meta['cover_url'], fanart= meta['backdrop_url'], total_items=len(match))
                                         else:
-                                                addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url}, {'title':  name}, total_items=len(match))
+                                                addon.add_directory({'mode': 'GetSeasons', 'section': section, 'url': BASE_URL + url}, {'title':  title}, total_items=len(match))
 		setView('tvshows', 'tvshows-view')
                 xbmcplugin.endOfDirectory(int(sys.argv[1]))
 

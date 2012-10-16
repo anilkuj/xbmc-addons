@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.tvlinks" version="0.1.2" name="Tvlinks" provider-name="anilkuj">
+<addon id="plugin.video.tvlinks" version="0.1.4" name="Tvlinks" provider-name="anilkuj">
     <requires>
-        <import addon="xbmc.python" version="1.0"/>
+        <import addon="xbmc.python" version="2.0"/>
         <import addon="script.module.urlresolver" version="0.0.1"/>
         <import addon="script.module.t0mm0.common" version="0.0.1"/>
     </requires>
