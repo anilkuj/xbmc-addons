@@ -38,7 +38,8 @@ page = addon.queries.get('page', None)
 episodes = addon.queries.get('episodes', None)
 listitem = addon.queries.get('listitem', None)
 query = addon.queries.get('query', None)
-
+startPage = addon.queries.get('startPage', None)
+numOfPages = addon.queries.get('numOfPages', None)
 
 
 def initDatabase():
@@ -75,10 +76,27 @@ def unicode_urlencode(value):
 		return urllib.quote(value)
 
 
-def GetTitles(section, url, html= None, episode = False): # Get Titles
+def GetTitles(section, url, html= None, episode = False, startPage= '1', numOfPages= '1'): # Get Titles
         print 'Solarmovie get Titles Menu %s \n' % url
-        if html is None :
-                html = net.http_GET(url).content
+
+        # handle paging
+        pageUrl = url
+        if int(startPage)> 1:
+                pageUrl = url + '?page=' + startPage
+        print pageUrl
+        html = net.http_GET(pageUrl).content
+
+        start = int(startPage)
+        end = start + int(numOfPages)
+        
+        last = 2
+        match  = re.findall('<li><a href=.+?page=([\d]+)"', html)
+        if match:
+                last = match[-1]
+        
+        #if html is None :
+        #       html = net.http_GET(url).content
+                
         match = re.compile('class="coverImage" title="(.+?)".+?href="(.+?)".+?src="(.+?)"', re.MULTILINE | re.IGNORECASE | re.DOTALL).findall(html)
         for name, url, img in match:
                 name = HTMLParser.HTMLParser().unescape(name)
