@@ -1,0 +1,5 @@
+<settings>
+   <category label="General">
+	<setting id="enableMeta" type="bool" label="30203" default="false" visible="true"/>
+   </category>
+</settings>
